@@ -20,6 +20,13 @@
         </select>
       </mat-form-field>
 
+      <mat-form-field appearance="standard" class="groups-default">
+        <mat-label>Currency</mat-label>
+        <select matNativeControl class="group-picker" [(ngModel)]="defaultCurrencySelected" (change)="defaultCurrencyChanged()">
+          <option *ngFor="let currency of currencies" [value]="currency">{{currency}}</option>
+        </select>
+      </mat-form-field>
+
 
 
       <div class="tag-selection">

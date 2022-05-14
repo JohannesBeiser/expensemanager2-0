@@ -64,6 +64,8 @@ export class AddComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.initialData = this.sliderService.currentExpenseForEdit;
+    this.defaultCurrency = localStorage.getItem("defaultCurrency")
+    debugger;
 
     //Code for food-tag toggle for tags groceries & eat-out
     this.currentCategory = this.initialData?.category || this.categoryService.defaultCategory;

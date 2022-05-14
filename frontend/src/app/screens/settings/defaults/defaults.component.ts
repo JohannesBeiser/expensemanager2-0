@@ -7,6 +7,7 @@ import { el } from 'date-fns/locale';
 import { Tag, TagService } from 'src/app/services/tag/tag.service';
 import { FormControl } from '@angular/forms';
 import { combineLatest } from 'rxjs';
+import { CurrencyService } from 'src/app/services/currency/currency.service';
 
 @Component({
   selector: 'app-defaults',
@@ -21,13 +22,16 @@ export class DefaultsComponent implements OnInit {
   constructor(
     private groupsService: GroupsService,
     private categoryService: CategoryService,
-    public tagService: TagService
+    public tagService: TagService,
+    private currencyService: CurrencyService
   ) { }
 
   public groupsWithSubgroups$: Observable<Group[]>;
   public categories$: Observable<Category[]>;
+  public currencies: string[];
   public defaultGroupSelected: number;
   public defaultCategorySelected: number;
+  public defaultCurrencySelected: string;
 
   public selectedTagIds: number[] = [];
   tagFormControl: FormControl;
@@ -38,6 +42,7 @@ export class DefaultsComponent implements OnInit {
 
 
   ngOnInit(): void {
+    this.currencies = ["EUR", ...this.currencyService.getOfflineCurrencies()];
     this.tagFormControl = new FormControl('');
     this.selectedTagIds = JSON.parse(localStorage.getItem("defaultTags")) || [];
 
@@ -58,6 +63,7 @@ export class DefaultsComponent implements OnInit {
     setTimeout(() => {
       this.defaultGroupSelected = this.groupsService.defaultGroup;
       this.defaultCategorySelected = this.categoryService.defaultCategory;
+      this.defaultCurrencySelected = localStorage.getItem("defaultCurrency")
     }, 100);
 
     this.tags$ = this.tagService.getTags();
@@ -70,6 +76,10 @@ export class DefaultsComponent implements OnInit {
     );
   }
 
+
+  defaultCurrencyChanged(){
+    localStorage.setItem("defaultCurrency", this.defaultCurrencySelected)
+  }
 
   // Tag functions
   private _filterTags(value: string): Tag[] {

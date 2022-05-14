@@ -46,7 +46,7 @@ export class CurrencyService {
 
   getOfflineCurrencies(): string[]{
     let rates: CurrencyRate[] = JSON.parse(localStorage.getItem("currencyRates")) || []
-    return rates.map(el=>el.from_to).map(el=>el.split("_")[1]);
+    return ["EUR", ...rates.map(el=>el.from_to).map(el=>el.split("_")[1])];
   }
 }
 

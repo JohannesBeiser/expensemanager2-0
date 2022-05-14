@@ -42,7 +42,7 @@ export class DefaultsComponent implements OnInit {
 
 
   ngOnInit(): void {
-    this.currencies = ["EUR", ...this.currencyService.getOfflineCurrencies()];
+    this.currencies = this.currencyService.getOfflineCurrencies();
     this.tagFormControl = new FormControl('');
     this.selectedTagIds = JSON.parse(localStorage.getItem("defaultTags")) || [];
 

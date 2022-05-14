@@ -43,8 +43,10 @@ export class AddComponent implements OnInit, AfterViewInit {
   public recurringForm: FormGroup;
   public selectedTabIndex: number;
   public currencyRates;
-  public options: string[];
-  public filteredOptions$: Observable<string[]>;
+  public options: string[]; // currency options
+  public optionsOffline: string[]; // currency options
+  public filteredOptions$:  Observable<string[]>;
+  public filteredOfflineCurrencies$:  Observable<string[]>;
   public groups$: Observable<Group[]>;
   public categories$: Observable<Category[]>;
   public initialData: Expense;
@@ -103,6 +105,7 @@ export class AddComponent implements OnInit, AfterViewInit {
     });
 
     this.options = this.currencyService.getCurrencies();
+    this.optionsOffline = this.currencyService.getOfflineCurrencies();
 
     if (this.initialData) {
       this.initialData.tags.forEach(tag=>this.selectedTagIds.push(tag))
@@ -132,6 +135,11 @@ export class AddComponent implements OnInit, AfterViewInit {
     this.filteredOptions$ = this.expenseForm.get('currency').valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value))
+    );
+
+    this.filteredOfflineCurrencies$ = this.expenseForm.get('currency').valueChanges.pipe(
+      startWith(''),
+      map(value => this._filterOffline(value))
     );
 
     //TODO : Dirty workaround
@@ -235,7 +243,10 @@ export class AddComponent implements OnInit, AfterViewInit {
     return this.options.filter(option => option.toLowerCase().indexOf(filterValue) === 0);
   }
 
-
+  private _filterOffline(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.optionsOffline.filter(option => option.toLowerCase().indexOf(filterValue) === 0);
+  }
 
   // Tag functions
 

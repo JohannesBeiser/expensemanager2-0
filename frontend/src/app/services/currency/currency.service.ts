@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
+export type CurrencyRate ={from_to: string, rate: number};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -12,12 +14,39 @@ export class CurrencyService {
 
   constructor(private http: HttpClient) { }
 
-  convertCurrency(from: string, to: string): Promise<any>{
-    return this.http.get(`https://free.currconv.com/api/v7/convert?q=${from}_${to}&compact=ultra&apiKey=154c04e70fa53eb6bad7`).toPromise();
+  async convertCurrency(from: string, to: string): Promise<any>{
+    let res;
+    try {
+      // all this is for memorizing every time a new rate has been fenteched and write that in into localstorage: TODO: persist in indexedDB and write all currencies in there
+      res = await this.http.get(`https://free.currconv.com/api/v7/convert?q=${from}_${to}&compact=ultra&apiKey=154c04e70fa53eb6bad7`).toPromise();
+      let rates: CurrencyRate[] = ( JSON.parse(localStorage.getItem("currencyRates")) || []) as CurrencyRate[];
+      let match = rates.find(el=>el.from_to == Object.keys(res)[0]);
+      if(!match){
+        let newEntry: CurrencyRate =  {from_to:Object.keys(res)[0], rate: undefined};
+        match = newEntry;
+        rates.push(newEntry);
+      }
+      match.rate = res[Object.keys(res)[0]]
+      localStorage.setItem("currencyRates", JSON.stringify(rates))
+      return res;
+    } catch (error) {
+      // offline
+      let rates: CurrencyRate[] = ( JSON.parse(localStorage.getItem("currencyRates")) || []) as CurrencyRate[];
+      let match = rates.find(el=>el.from_to == `${from}_${to}`);
+      let result = {};
+      result[`${from}_${to}`] = match.rate
+      return result;
+    }
+
   }
 
   getCurrencies(): string[]{
     return this.currencies;
+  }
+
+  getOfflineCurrencies(): string[]{
+    let rates: CurrencyRate[] = JSON.parse(localStorage.getItem("currencyRates"))
+    return rates.map(el=>el.from_to).map(el=>el.split("_")[1]);
   }
 }
 

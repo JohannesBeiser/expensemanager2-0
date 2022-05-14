@@ -42,6 +42,16 @@
             </mat-autocomplete>
           </mat-form-field>
 
+          <mat-form-field *ngIf="!isOnline" appearance="standard">
+            <input type="text" placeholder="Currency" aria-label="Number" matInput formControlName="currency"
+              [matAutocomplete]="auto" (click)="clearCurrency()" (blur)="blurHandler()">
+            <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+              <mat-option *ngFor="let option of filteredOfflineCurrencies$ | async" [value]="option">
+                {{option}}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+
           <mat-form-field appearance="standard">
             <mat-label>Category</mat-label>
             <select matNativeControl formControlName="category">

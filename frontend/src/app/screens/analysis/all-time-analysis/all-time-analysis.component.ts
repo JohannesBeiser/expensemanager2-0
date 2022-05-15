@@ -53,7 +53,7 @@ type Stats = {
   }[]
 }
 
-export type Restriction = "no-special" | "no-special-no-invest" | "none";
+export type Restriction = "no-special" | "no-special-no-invest" | "none" | "no-invest";
 
 @Component({
   selector: 'app-all-time-analysis',
@@ -81,7 +81,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
   categorySelected: number = 0;
   public categories$: Observable<Category[]>;
   restrictionSelected: Restriction = "none";
-  restrictions: string[] = ["none", "no-special", "no-special-no-invest"]
+  restrictions: string[] = ["none", "no-special", "no-special-no-invest", "no-invest"]
   updateFlag: boolean = false;
   tempCategoriesSorted: { category: Category, amount: number, percentage?: number }[];
   tempCategoriesSortedForLegend: { category: Category, amount: number, percentage?: number }[];
@@ -98,7 +98,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
 
 
   ngOnInit(): void {
-    this.restrictionSelected = this.analysisService.getInitialRestriction() ;
+    // this.restrictionSelected = this.analysisService.getInitialRestriction() ;
     this.categories$ = this.categoryService.getCategoriesNew().pipe(
       filter(categories => categories.length > 0),
       map(categories => categories.filter(category => category.name !== 'unassigned'))
@@ -169,7 +169,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
 
           }
           if (expense.category == 1638217648875) {
-            // invest category 
+            // invest category
             yearsDataMatch.totalInvest += expense.amount;
             this.stats.totalInvest += expense.amount;
           }
@@ -235,7 +235,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
             yearsCategoryMatch.totalSpecial += expense.amount;
           }
           if (expense.category == 1638217648875) {
-            // investcategory 
+            // investcategory
             yearsCategoryDataMatch.totalInvest += expense.amount;
             yearsCategoryMatch.totalInvest += expense.amount;
           }
@@ -274,7 +274,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
       this.initializeChart();
       this.initializeCategoryPieChart();
     });
-    this.subs.push(sub)
+    this.subs.push(sub);
   }
 
   ngOnDestroy(): void {
@@ -405,7 +405,15 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
         result.invest = this.getAverageValues(1638217648875).year;
         result.nonInvest = ((this.stats.totalSinceInvest - this.getCategoryStats(1638217648875).total - this.stats.totalSpecial) / this.getCategoryStats(1638217648875).amountOfDays) * 365;
         break;
-  
+      case "no-invest":
+        result.regular = ((this.stats.total - this.stats.totalRecurring) / this.stats.amountOfDays) * 30.437;
+        result.recurring = (this.stats.totalRecurring / this.stats.amountOfDays) * 30.437;
+        result.travel = (this.stats.totalTravel / this.stats.amountOfDays) * 365;
+        result.nonTravel = (this.stats.totalNonTravel / this.stats.amountOfDays) * 365;
+        result.invest = this.getAverageValues(1638217648875).year;
+        result.nonInvest = ((this.stats.totalSinceInvest - this.getCategoryStats(1638217648875).total) / this.getCategoryStats(1638217648875).amountOfDays) * 365;
+        break;
+
       default:
         break;
     }
@@ -470,6 +478,28 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
           this.averagePerYear = this.averagePerDay * 365;
         }
           break;
+        case "no-invest": {
+          let years: string[] = this.stats.yearsData.sort((a, b) => { return a.year - b.year }).map(el => el.year.toString())
+
+          let values: number[] = this.stats.yearsData.sort((a, b) => { return a.year - b.year }).map(el => Math.round(el.total - el.totalInvest));
+          this.chartOptions.xAxis = {
+            categories: years,
+            crosshair: true
+          }
+          this.chartOptions.series = [
+            {
+              color: '#444444',
+              type: 'column',
+              data: values
+            }
+          ]
+
+          this.averageTotal = Math.round(this.stats.total - this.stats.totalInvest)
+          this.averagePerDay = this.averageTotal / this.stats.amountOfDays;
+          this.averagePerMonth = this.averagePerDay * 30.437;
+          this.averagePerYear = this.averagePerDay * 365;
+        }
+        break;
         default:
           alert("unhandled restricion case")
           break;
@@ -537,6 +567,29 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
           let years: string[] = this.stats.categoryYearsData.find(el => el.category == selectedCategory.id).data.sort((a, b) => { return a.year - b.year }).map(el => el.year.toString())
 
           let values: number[] = this.stats.categoryYearsData.find(el => el.category == selectedCategory.id).data.sort((a, b) => { return a.year - b.year }).map(el => Math.round(el.total - el.totalSpecial - el.totalInvest));
+          this.chartOptions.xAxis = {
+            categories: years,
+            crosshair: true
+          }
+          this.chartOptions.series = [
+            {
+              color: selectedCategory.color,
+              type: 'column',
+              data: values
+            }
+          ]
+        }
+        case "no-invest": {
+          let selectedCategory: Category = this.categoryService.getCategoryFromId(this.categorySelected);
+          let averageValues = this.getAverageValues(selectedCategory.id);
+          this.averageTotal = averageValues.total - averageValues.totalInvest
+          this.averagePerYear = this.averageTotal / averageValues.amountOfDays * 365;
+          this.averagePerMonth = this.averageTotal / averageValues.amountOfDays * 30.437;;
+          this.averagePerDay = this.averageTotal / averageValues.amountOfDays;
+
+          let years: string[] = this.stats.categoryYearsData.find(el => el.category == selectedCategory.id).data.sort((a, b) => { return a.year - b.year }).map(el => el.year.toString())
+
+          let values: number[] = this.stats.categoryYearsData.find(el => el.category == selectedCategory.id).data.sort((a, b) => { return a.year - b.year }).map(el => Math.round(el.total - el.totalInvest));
           this.chartOptions.xAxis = {
             categories: years,
             crosshair: true

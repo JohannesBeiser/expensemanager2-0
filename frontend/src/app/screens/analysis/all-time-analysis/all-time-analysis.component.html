@@ -8,9 +8,10 @@
                 <option value="0">All Categories</option>
                 <option *ngFor="let category of categories$ | async" value="{{category.id}}">{{category.name}}</option>
               </select>
-              <select [(ngModel)]="restrictionSelected" (change)="restrictionChanged()" class="restriction-selection"> 
+              <select [(ngModel)]="restrictionSelected" (change)="restrictionChanged()" class="restriction-selection ml-16">
                 <option value="none">No restriction</option>
                 <option value="no-special">Exclude Special</option>
+                <option value="no-invest">Exclude Invest</option>
                 <option value="no-special-no-invest">Exclude special & invest</option>
 
               </select>
@@ -53,7 +54,7 @@
                 </div>
 
                 <div class="pie-chart-wrapper">
-                    <highcharts-chart body *ngIf="chartReady" [Highcharts]="Highcharts" [options]="categoryPieChartOptions" 
+                    <highcharts-chart body *ngIf="chartReady" [Highcharts]="Highcharts" [options]="categoryPieChartOptions"
                     style="width: 100%; display: block;" class="highcharts-chart semi-pie-category-chart">
                     </highcharts-chart>
                     <div class="legend">
@@ -66,7 +67,7 @@
                 </div>
             </div>
         </app-card>
-      
+
     </div>
     <div *ngIf="chartReady" class="chart-section">
         <app-card>
@@ -81,10 +82,10 @@
                             <div>Regular</div>
                             <div>{{getComparisonValues().regular | number: '1.0-0':'de-DE'}} €</div>
                         </div>
-                        <app-ratio-bar 
-                            [value1]="((stats.total- stats.totalRecurring) / stats.amountOfDays) *30.437" 
-                            [value2]="(stats.totalRecurring / stats.amountOfDays) *30.437" 
-                            [labelFirst]="true" 
+                        <app-ratio-bar
+                            [value1]="((stats.total- stats.totalRecurring) / stats.amountOfDays) *30.437"
+                            [value2]="(stats.totalRecurring / stats.amountOfDays) *30.437"
+                            [labelFirst]="true"
                             [showLabels]="false"
                             [color1]="'#444444'" [color2]="'rgb(171 171 171)'"
                             [labelPrefix1]="'Regular expenses'" [labelPrefix2]="'Recurring'">
@@ -93,7 +94,7 @@
                                 <div>Recurring</div>
                                 <div>{{getComparisonValues().recurring | number: '1.0-0':'de-DE'}} €</div>
                             </div>
-                    </div>    
+                    </div>
                 </div>
 
                 <div class="travel-ratio">
@@ -107,10 +108,10 @@
                             <div>Non-Travel</div>
                             <div>{{getComparisonValues().nonTravel | number: '1.0-0':'de-DE'}} €</div>
                         </div>
-                        <app-ratio-bar 
-                            [value1]="stats.totalNonTravel" 
-                            [value2]="stats.totalTravel" 
-                            [labelFirst]="true" 
+                        <app-ratio-bar
+                            [value1]="stats.totalNonTravel"
+                            [value2]="stats.totalTravel"
+                            [labelFirst]="true"
                             [showLabels]="false"
                             [color1]="'#444444'" [color2]="'rgb(171 171 171)'"
                             [labelPrefix1]="'Non-Travel'" [labelPrefix2]="'Travel'">
@@ -123,8 +124,8 @@
                                 <div>Non-Travel</div>
                                 <div>{{getComparisonValues().nonTravel | number: '1.0-0':'de-DE'}} €</div>
                             </div>
-                    </div>   
-                    
+                    </div>
+
                     <div class="travel-ratio">
                         <div class="title">Yearly</div>
                         <div class="content">
@@ -136,10 +137,10 @@
                                 <div>Non-Invest</div>
                                 <div>{{getComparisonValues().nonInvest | number: '1.0-0':'de-DE'}} €</div>
                             </div>
-                            <app-ratio-bar 
-                                [value1]="(stats.total - getCategoryStats(1638217648875).total)" 
-                                [value2]="getCategoryStats(1638217648875).total" 
-                                [labelFirst]="true" 
+                            <app-ratio-bar
+                                [value1]="(stats.total - getCategoryStats(1638217648875).total)"
+                                [value2]="getCategoryStats(1638217648875).total"
+                                [labelFirst]="true"
                                 [showLabels]="false"
                                 [color1]="'#444444'" [color2]="'rgb(171 171 171)'"
                                 [labelPrefix1]="'Non-Travel'" [labelPrefix2]="'Travel'">
@@ -152,14 +153,14 @@
                                     <div>Non-Invest</div>
                                     <div>{{getComparisonValues().nonInvest | number: '1.0-0':'de-DE'}} €</div>
                                 </div>
-                                </div>                            
-                        </div>                        
-                </div>  
+                                </div>
+                        </div>
+                </div>
             </div>
         </app-card>
     </div>
 
-    
+
     <div *ngIf="chartReady" class="chart-section">
         <app-card>
             <div class="title-container" header>

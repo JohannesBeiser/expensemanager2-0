@@ -8,6 +8,8 @@ import { filter, map, take } from 'rxjs/operators';
 import { differenceInDays } from 'date-fns';
 import { MatDialog } from '@angular/material/dialog';
 import { ExpenseListDialogComponent } from '../expense-list-dialog/expense-list-dialog.component';
+import { Restriction } from '../all-time-analysis/all-time-analysis.component';
+import { AnalysisService } from 'src/app/services/analysis/analysis.service';
 
 type Stats = {
   averagePerMonth: number,
@@ -45,15 +47,17 @@ type Stats = {
 export class YearAnalysisComponent implements OnInit {
 
   @Input() set initialYear(year: number) {
-    if(year){    
+    if(year){
       this.selectedYear$.next(year);
       this.yearSelection = year;
     }
   }
+
   constructor(
     public categoryService: CategoryService,
     private expenseService: ExpenseService,
     public dialog: MatDialog,
+    private analysisService: AnalysisService
   ) { }
 
   Highcharts: typeof Highcharts = Highcharts;
@@ -61,6 +65,7 @@ export class YearAnalysisComponent implements OnInit {
   public categories$: Observable<Category[]>;
   private expenses$: Observable<Expense[]>;
   public selectedYear$: BehaviorSubject<number>;
+  public selectedRestriction$: BehaviorSubject<Restriction>;
   public availableYears: number[];
   public yearSelection: number = new Date().getFullYear();
   monthChartOptions: Highcharts.Options = {};
@@ -70,6 +75,7 @@ export class YearAnalysisComponent implements OnInit {
   tempCategoriesSorted: { category: Category, amount: number, percentage?: number }[];
   tempCategoriesSortedForLegend: { category: Category, amount: number, percentage?: number }[];
   private subs: Subscription[] = [];
+  restrictionSelected: Restriction = "none";
 
   averagePerMonth: number;
   averagePerDay: number;
@@ -99,12 +105,16 @@ export class YearAnalysisComponent implements OnInit {
     );
 
 
-    this.selectedYear$ = new BehaviorSubject(new Date().getFullYear())
+    this.selectedYear$ = new BehaviorSubject(new Date().getFullYear());
+
+    let initialRestriction = this.analysisService.getInitialRestriction();
+    this.restrictionSelected = initialRestriction;
+    this.selectedRestriction$ = new BehaviorSubject(initialRestriction || "none")
     this.expenses$ = this.expenseService.getExpenses("expenses").pipe(
       filter(expenses => expenses.length > 0),
       take(1)
     )
-    combineLatest([this.expenses$, this.selectedYear$, this.categories$]).subscribe(([expenses, selectedYear]) => {
+    combineLatest([this.expenses$, this.selectedYear$, this.categories$, this.selectedRestriction$]).subscribe(([expenses, selectedYear,categories,restriciton]) => {
       this.availableYears = expenses.reduce((acc, cur) => {
         let currentYear = new Date(cur.date).getFullYear()
         if (!acc.includes(currentYear)) {
@@ -128,6 +138,24 @@ export class YearAnalysisComponent implements OnInit {
 
 
       expenses = expenses.filter(expense => new Date(expense.date).getFullYear() === parseInt(selectedYear as any));
+
+      switch (restriciton) {
+        case "none":
+          break;
+        case "no-special":
+          expenses = expenses.filter(expense=> ! (expense.tags.includes(1640542478507) || expense.tags.includes(1639339361128))) // special-expense and special-trave-expense tag
+          break;
+          case "no-special-no-invest":
+          expenses = expenses.filter(expense=> ! (expense.tags.includes(1640542478507) || expense.tags.includes(1639339361128) || expense.category == 1638217648875)) // special-expense and special-trave-expense tag
+          break;
+          case "no-invest":
+          expenses = expenses.filter(expense=> ! (expense.category == 1638217648875)) // special-expense and special-trave-expense tag
+          break;
+
+        default:
+          break;
+      }
+
       let firstDate: Date;
       let lastDate: Date;
 
@@ -149,10 +177,10 @@ export class YearAnalysisComponent implements OnInit {
             lastDate = new Date(expense.date);
           }
 
-          
+
           // all totals
           this.stats.total += expense.amount;
-          
+
           // months total
           let expenseMonth: number = new Date(expense.date).getMonth();
           let monthsDataMatch = this.stats.monthsData.find(el => el.month === expenseMonth);
@@ -222,6 +250,14 @@ export class YearAnalysisComponent implements OnInit {
       this.categoryChanged();
     })
   }
+
+  public restrictionChanged() {
+    this.analysisService.setInitialRestriction(this.restrictionSelected)
+    this.selectedRestriction$.next(this.restrictionSelected)
+    // this.filtersChanged()
+  }
+
+
 
   yearSelectionChanged() {
     this.selectedYear$.next(this.yearSelection);

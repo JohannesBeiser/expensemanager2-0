@@ -76,7 +76,6 @@ export class DefaultsComponent implements OnInit {
     );
   }
 
-
   defaultCurrencyChanged(){
     localStorage.setItem("defaultCurrency", this.defaultCurrencySelected)
   }

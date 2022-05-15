@@ -3,7 +3,7 @@ import { ta } from 'date-fns/locale';
 
 
 export type AnalysisTabTypes = "all_time" | "year" | "month" | "custom";
-export type RestrictionTypes = "none" | "no-special" | "no-special-no-invest";
+export type RestrictionTypes = "none" | "no-special" | "no-special-no-invest" | "no-invest";
 
 
 @Injectable({
@@ -15,7 +15,7 @@ export class AnalysisService {
   private initialYear: number;
   private initialRestriction: RestrictionTypes;
 
-  constructor() { 
+  constructor() {
     this.currentTab =  (localStorage.getItem("analysisTab") || "all_time") as AnalysisTabTypes;
     this.initialRestriction =  (localStorage.getItem("analysisRestriction") || "none") as RestrictionTypes;
   }
@@ -45,6 +45,6 @@ export class AnalysisService {
     this.initialRestriction = restriction;
   }
 
-  
+
 
 }

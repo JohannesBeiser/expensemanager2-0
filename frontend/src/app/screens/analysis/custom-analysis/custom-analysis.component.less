@@ -2,3 +2,48 @@
   padding: 8px;
   margin-top: 16px;
 }
+
+
+::ng-deep{
+  .tag-selection{
+      width: 100%;
+
+      .selected-tags{
+          display: flex;
+          flex-wrap: wrap;
+
+          .selected-tag-item{
+              font-size: 0.6em;
+              padding: 4px 8px;
+              border: 1px solid #444;
+              margin-right: 12px;
+              margin-bottom: 12px;
+              display: flex;
+              align-items: center;
+
+              .label{
+                  margin-right: 4px;
+              }
+              i{
+                  font-size: 16px;
+              }
+          }
+      }
+
+      mat-form-field{
+          width: 100%;
+      }
+
+          .mat-form-field-flex{
+              padding-top: 0 !important;
+          }
+      }
+
+      .food-specific-tags{
+          margin-bottom: 12px;
+      }
+
+      .mat-form-field-infix{
+          border-top: 0px !important;
+      }
+  }

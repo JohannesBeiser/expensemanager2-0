@@ -1,1 +1,18 @@
-<p>custom-analysis works!</p>
+<div class="custom-analysis-container">
+
+  <mat-form-field appearance="standard" class="groups-default">
+    <mat-label>Group</mat-label>
+    <select matNativeControl class="group-picker group-input-field" [(ngModel)]="selectedGroup" (change)="groupChanged()">
+      <option *ngFor="let group of groupsWithSubgroups" [value]="group.id">{{group.name}}</option>
+    </select>
+  </mat-form-field>
+
+
+  <mat-form-field appearance="standard" class="groups-default" *ngIf="categories && categories.length>1">
+    <mat-label>Category</mat-label>
+    <select matNativeControl class="group-picker" [(ngModel)]="selectedCategory" (change)="categoryChanged()">
+      <option *ngFor="let category of categories" [value]="category.id">{{category.name}}</option>
+    </select>
+  </mat-form-field>
+
+</div>

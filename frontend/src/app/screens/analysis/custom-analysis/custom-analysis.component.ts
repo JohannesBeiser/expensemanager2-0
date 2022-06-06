@@ -7,7 +7,7 @@ import { Subject } from 'rxjs';
 import { Tag, TagService } from 'src/app/services/tag/tag.service';
 import { FormControl } from '@angular/forms';
 import { combineLatest } from 'rxjs';
-import { ExpenseService } from 'src/app/services/expenses/expense.service';
+import { Expense, ExpenseService } from 'src/app/services/expenses/expense.service';
 
 @Component({
   selector: 'app-custom-analysis',
@@ -27,7 +27,6 @@ export class CustomAnalysisComponent implements OnInit {
   public groupsWithSubgroups: Group[];
 
   public categories$: Observable<Category[]>;
-  public categories: Category[];
 
   selectedGroup: string = "999";
   selectedGroup$: Subject<string> = new Subject();
@@ -44,11 +43,23 @@ export class CustomAnalysisComponent implements OnInit {
   @ViewChild('tagSelectInputElement') tagSelectInputElement: ElementRef;
 
 
+  expenses: Expense[];
+  groups: Group[];
+  tags: Tag[];
+  categories: Category[];
+  textareaValue: string= localStorage.getItem("custom_analysis_code");
+  evalOutput: string;
+  customAnalysisMode: "basic" | "advanced" ="advanced"
 
   //stats
   public total: number;
 
   ngOnInit(): void {
+    setTimeout(() => {
+      this.execute();
+    }, 100);
+    this.expenseService.getExpenses().subscribe(expenses=>this.expenses=expenses);
+
     this.groupsWithSubgroups$ = this.groupsService.getGroups().pipe(
       map(groups=>{
         return groups.reduce((acc,cur)=>{
@@ -69,7 +80,10 @@ export class CustomAnalysisComponent implements OnInit {
     );
 
     this.tags$ = this.tagService.getTags();
-    this.tags$.subscribe(tags=>this.allTags = tags);
+    this.tags$.subscribe(tags=>{
+      this.allTags = tags
+      this.tags = tags;
+    });
 
     this.filteredTags$ = combineLatest([this.tagFormControl.valueChanges.pipe(startWith('')), this.tagService.getTags()]).pipe(
       filter(([value, tags])=>value != null),
@@ -79,15 +93,40 @@ export class CustomAnalysisComponent implements OnInit {
 
     this.groupsWithSubgroups$.subscribe(el=>{
       this.groupsWithSubgroups = el;
+      this.groups = el;
     });
 
     this.categories$.subscribe(el=>{
       this.categories = el;
     });
 
-    combineLatest([this.tags$, this.categories$, this.groupsWithSubgroups$]).pipe(take(1)).subscribe(()=>this.recalculate())
+    combineLatest([this.tags$, this.categories$, this.groupsWithSubgroups$, this.expenseService.getExpenses()]).pipe(take(1)).subscribe(()=>{
+      this.recalculate();
+    })
   }
 
+
+
+  toggleMode(){
+    this.customAnalysisMode == "basic" ? this.customAnalysisMode = "advanced": this.customAnalysisMode = "basic"
+  }
+
+  codeChanged(){
+    // if text-area value ends with something like ".tags ==" , we assume we want tpo enter a tag id here
+    // debugger;
+    localStorage.setItem("custom_analysis_code", this.textareaValue)
+  }
+
+  execute(){
+    this.evalOutput = eval(this.textareaValue)
+  }
+
+
+  //clears the entire code
+  clear(){
+    this.textareaValue= "";
+    this.evalOutput = undefined
+  }
 
   // gets called whenever an ipnput changed and calculates everything
   async recalculate(){

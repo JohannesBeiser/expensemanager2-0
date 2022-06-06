@@ -1,39 +1,70 @@
 <div class="custom-analysis-container">
 
-  <mat-form-field appearance="standard" class="groups-default">
-    <mat-label>Group</mat-label>
-    <select matNativeControl class="group-picker group-input-field" [(ngModel)]="selectedGroup" (change)="groupChanged()">
-      <option *ngFor="let group of groupsWithSubgroups" [value]="group.id">{{group.name}}</option>
-    </select>
-  </mat-form-field>
-
-
-  <mat-form-field appearance="standard" class="groups-default" *ngIf="categories && categories.length>1">
-    <mat-label>Category</mat-label>
-    <select matNativeControl class="group-picker" [(ngModel)]="selectedCategory" (change)="categoryChanged()">
-      <option *ngFor="let category of categories" [value]="category.id">{{category.name}}</option>
-    </select>
-  </mat-form-field>
-
-  <div class="tag-selection">
-    <div class="selected-tags">
-      <div class="selected-tag-item" *ngFor="let tagId of selectedTagIds">
-        <div class="label">{{tagService.getTagById(tagId).name}}</div>
-        <i class="material-icons-outlined back-icon" (click)="removeTag(tagId)">close</i>
-      </div>
-    </div>
-    <mat-form-field appearance="standard">
-      <input type="text" #tagSelectInputElement placeholder="Select Tags" aria-label="Number" matInput
-        [formControl]="tagFormControl" [matAutocomplete]="auto">
-      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="tagSelected($event.option.value)">
-        <mat-option *ngFor="let tag of filteredTags$ | async" [value]="tag.id">
-          {{tag.name}}
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
+  <div class="d-flex align-center mb-16 mode-toggle" (click)="toggleMode()">
+    <span [class.active]="customAnalysisMode == 'basic'">Basic</span>
+    <i class="material-icons">{{customAnalysisMode == "basic"? "chevron_left": "chevron_right"}}</i>
+    <span [class.active]="customAnalysisMode == 'advanced'">Advanced</span>
   </div>
 
+  <div class="basic-mode" *ngIf="customAnalysisMode== 'basic'">
 
-  <h2 *ngIf="total">Total: {{total | prettyCurrency}}</h2>
+    <mat-form-field appearance="standard" class="groups-default">
+      <mat-label>Group</mat-label>
+      <select matNativeControl class="group-picker group-input-field" [(ngModel)]="selectedGroup" (change)="groupChanged()">
+        <option *ngFor="let group of groupsWithSubgroups" [value]="group.id">{{group.name}}</option>
+      </select>
+    </mat-form-field>
+
+
+    <mat-form-field appearance="standard" class="groups-default" *ngIf="categories && categories.length>1">
+      <mat-label>Category</mat-label>
+      <select matNativeControl class="group-picker" [(ngModel)]="selectedCategory" (change)="categoryChanged()">
+        <option *ngFor="let category of categories" [value]="category.id">{{category.name}}</option>
+      </select>
+    </mat-form-field>
+
+    <div class="tag-selection">
+      <div class="selected-tags">
+        <div class="selected-tag-item" *ngFor="let tagId of selectedTagIds">
+          <div class="label">{{tagService.getTagById(tagId).name}}</div>
+          <i class="material-icons-outlined back-icon" (click)="removeTag(tagId)">close</i>
+        </div>
+      </div>
+      <mat-form-field appearance="standard">
+        <input type="text" #tagSelectInputElement placeholder="Select Tags" aria-label="Number" matInput
+          [formControl]="tagFormControl" [matAutocomplete]="auto">
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="tagSelected($event.option.value)">
+          <mat-option *ngFor="let tag of filteredTags$ | async" [value]="tag.id">
+            {{tag.name}}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+    <h2 *ngIf="total">Total: {{total | prettyCurrency}}</h2>
+  </div>
+
+  <div class="advanced-mode" *ngIf="customAnalysisMode== 'advanced'">
+    <mat-form-field appearance="fill" class="w-100" >
+      <mat-label>Javascript code</mat-label>
+      <textarea (input)="codeChanged()" [(ngModel)]="textareaValue" matInput cdkTextareaAutosize #autosize="cdkTextareaAutosize"
+        cdkAutosizeMinRows="5" cdkAutosizeMaxRows="15"></textarea>
+    </mat-form-field>
+
+    <div class="buttons">
+      <div class="execute-button flex-1 mr-16" (click)="execute()">
+        <span class="flex-1">Execute</span>
+        <i class="material-icons">play_arrow</i>
+      </div>
+      <div class="execute-button flex-1" (click)="clear()">
+        <span class="flex-1">Zurücksetzen</span>
+        <i class="material-icons">clear</i>
+      </div>
+    </div>
+
+    <h3 class="mb-16 mt-16">Output</h3>
+    <pre>{{evalOutput | json}}</pre>
+
+  </div>
+
 
 </div>

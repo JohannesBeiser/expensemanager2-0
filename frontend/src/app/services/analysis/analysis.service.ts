@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { ta } from 'date-fns/locale';
+import { Subject } from 'rxjs';
+import { Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 
 export type AnalysisTabTypes = "all_time" | "year" | "month" | "custom";
@@ -14,6 +16,7 @@ export class AnalysisService {
   private currentTab: AnalysisTabTypes;
   private initialYear: number;
   private initialRestriction: RestrictionTypes;
+  private selectedCategory$ : Subject<string> = new Subject();
 
   constructor() {
     this.currentTab =  (localStorage.getItem("analysisTab") || "all_time") as AnalysisTabTypes;
@@ -45,6 +48,12 @@ export class AnalysisService {
     this.initialRestriction = restriction;
   }
 
+  public setInitialCategory(category: string){
+    this.selectedCategory$.next(category);
+  }
 
+  public getInitialCategory(): Observable<string>{
+    return this.selectedCategory$.asObservable();
+  }
 
 }

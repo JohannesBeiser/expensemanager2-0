@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { isThisQuarter } from 'date-fns';
 import { AnalysisService, AnalysisTabTypes } from 'src/app/services/analysis/analysis.service';
+import { Restriction } from './all-time-analysis/all-time-analysis.component';
 
 @Component({
   selector: 'app-analysis',
@@ -16,6 +17,7 @@ export class AnalysisComponent implements OnInit {
 
   public selectedTabIndex: number;
   public selectedYear: number;
+  public selectedRestriction: Restriction;
 
   ngOnInit(): void {
 
@@ -26,7 +28,13 @@ export class AnalysisComponent implements OnInit {
     // do that actually in the 4 sub-components, thisn here is justa  dumb wrapper component
   }
 
+  restrictionChanged(restriction: Restriction){
+    this.selectedRestriction = restriction;
+  }
+
   tabSelected(event: MatTabChangeEvent){
+    this.selectedYear = this.analysisService.getInitialYear();
+    this.selectedRestriction = this.analysisService.getInitialRestriction();
     let tab = ["all_time", "year", "month", "custom"][event.index] as AnalysisTabTypes
     this.analysisService.setTab(tab);
   }
@@ -35,10 +43,11 @@ export class AnalysisComponent implements OnInit {
     this.analysisService.setTab(tab);
   }
 
-  yearClicked(year: number){
+  yearClicked(event: {year: number, restriction: Restriction}){
     this.analysisService.setTab("year");
     this.selectedTabIndex = 1;
-    this.selectedYear = year;
+    this.selectedYear = event.year;
+    this.selectedRestriction = event.restriction;
   }
 
 }

@@ -8,7 +8,7 @@
             </select></div>
         <div class="category">
             <div class="title"></div>
-            <select [(ngModel)]="categorySelected" (change)="categoryChanged()">
+            <select [(ngModel)]="categorySelected" (change)="categorySelectionChanged()">
                 <option value="0">All Categories</option>
                 <option *ngFor="let category of categories$ | async" value="{{category.id}}">{{category.name}}</option>
               </select>

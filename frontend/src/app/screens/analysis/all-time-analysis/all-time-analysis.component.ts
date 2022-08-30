@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnDestroy, OnInit, Output, ɵclearResolutionOfComponentResourcesQueue } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ɵclearResolutionOfComponentResourcesQueue } from '@angular/core';
 import { differenceInDays } from 'date-fns';
 import { Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, map, take } from 'rxjs/operators';
@@ -10,6 +10,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { ExpenseListDialogComponent } from '../expense-list-dialog/expense-list-dialog.component';
 import { combineLatest } from 'rxjs';
 import { AnalysisService } from 'src/app/services/analysis/analysis.service';
+import { BehaviorSubject } from 'rxjs';
+import { skip } from "rxjs/operators";
 
 
 type Stats = {
@@ -62,11 +64,21 @@ export type Restriction = "no-special" | "no-special-no-invest" | "none" | "no-i
 })
 export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
 
-  @Output() tabChanged = new EventEmitter<number>();
+  public selectedRestriction$: BehaviorSubject<Restriction> = new BehaviorSubject(this.analysisService.getInitialRestriction() || "none");
+
+  @Input() set initialRestriction(restriction: Restriction) {
+    if(restriction){
+      this.selectedRestriction$.next(restriction);
+      this.restrictionSelected = restriction;
+      this.filtersChanged()
+    }
+  }
+
+
+  @Output() tabChanged = new EventEmitter<{year: number, restriction: Restriction}>();
 
   constructor(
     private expenseService: ExpenseService,
-    private groupService: GroupsService,
     public categoryService: CategoryService,
     public analysisService: AnalysisService,
     public dialog: MatDialog,
@@ -80,7 +92,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
 
   categorySelected: number = 0;
   public categories$: Observable<Category[]>;
-  restrictionSelected: Restriction = "none";
+  restrictionSelected: Restriction;
   restrictions: string[] = ["none", "no-special", "no-special-no-invest", "no-invest"]
   updateFlag: boolean = false;
   tempCategoriesSorted: { category: Category, amount: number, percentage?: number }[];
@@ -98,17 +110,35 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
 
 
   ngOnInit(): void {
-    // this.restrictionSelected = this.analysisService.getInitialRestriction() ;
+    let initialRestriction = this.analysisService.getInitialRestriction();
+
+    this.restrictionSelected = initialRestriction;
+
+    this.analysisService.getInitialCategory().subscribe((category)=>{
+      this.categorySelected = parseInt(category)
+      this.filtersChanged();
+    })
+
+    this.restrictionSelected = this.analysisService.getInitialRestriction();
     this.categories$ = this.categoryService.getCategoriesNew().pipe(
       filter(categories => categories.length > 0),
       map(categories => categories.filter(category => category.name !== 'unassigned'))
     );
 
+    this.analysisService.getInitialCategory().subscribe(category=>{
+      this.categorySelected = parseInt(category);
+      this.filtersChanged();
+    })
 
     this.expenses$ = this.expenseService.getExpenses("expenses").pipe(
       filter(expenses => expenses.length > 0),
       distinctUntilChanged(),
       take(1));
+
+      this.selectedRestriction$.pipe(skip(1)).subscribe((restriction)=>{
+        this.restrictionSelected = restriction;
+        this.filtersChanged();
+      })
 
     let sub = combineLatest([this.expenses$, this.categories$]).subscribe(([expenses]) => {
       this.stats = {
@@ -163,7 +193,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
           }
           yearsDataMatch = this.stats.yearsData.find(el => el.year === expenseYear);
           yearsDataMatch.total += expense.amount;
-          if (expense.tags.indexOf(1640542478507) >= 0) {
+          if (expense.tags.indexOf(1640542478507) >= 0 || expense.tags.indexOf(1639339361128) >= 0) {
             // special-expense tag
             yearsDataMatch.totalSpecial += expense.amount;
 
@@ -206,7 +236,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
             // wasting tag
             this.stats.totalWasted += expense.amount;
           }
-          if (expense.tags.indexOf(1640542478507) >= 0) {
+          if (expense.tags.indexOf(1640542478507) >= 0 || expense.tags.indexOf(1639339361128) >= 0) {
             // special-expense tag
             this.stats.totalSpecial += expense.amount;
           }
@@ -229,7 +259,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
           }
           yearsCategoryDataMatch = yearsCategoryMatch.data.find(el => el.year == expenseYear);
           yearsCategoryDataMatch.total += expense.amount;
-          if (expense.tags.indexOf(1640542478507) >= 0) {
+          if (expense.tags.indexOf(1640542478507) >= 0 || expense.tags.indexOf(1639339361128) >= 0) {
             // special-expense tag
             yearsCategoryDataMatch.totalSpecial += expense.amount;
             yearsCategoryMatch.totalSpecial += expense.amount;
@@ -273,6 +303,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
 
       this.initializeChart();
       this.initializeCategoryPieChart();
+      this.filtersChanged();
     });
     this.subs.push(sub);
   }
@@ -614,7 +645,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
   }
 
   yearClicked(year: number) {
-    this.tabChanged.emit(year)
+    this.tabChanged.emit({year, restriction: this.restrictionSelected})
   }
 
   initializeCategoryPieChart() {
@@ -693,7 +724,8 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
   }
 
   public categoryChanged() {
-    this.filtersChanged()
+    this.analysisService.setInitialCategory(this.categorySelected.toString())
+    this.filtersChanged();
   }
 
   public restrictionChanged() {

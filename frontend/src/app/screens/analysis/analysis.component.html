@@ -1,8 +1,8 @@
 
 <div class="analysis-component-container">
     <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="tabSelected($event)" class="tab-group-wrapper">
-        <mat-tab label="All Time"><app-all-time-analysis  (tabChanged)="yearClicked($event)"></app-all-time-analysis></mat-tab>
-        <mat-tab label="Year"><app-year-analysis [initialYear]="selectedYear"></app-year-analysis></mat-tab>
+        <mat-tab label="All Time"><app-all-time-analysis [initialRestriction]="selectedRestriction" (tabChanged)="yearClicked($event)"></app-all-time-analysis></mat-tab>
+        <mat-tab label="Year"><app-year-analysis (restrictionHasChanged)="restrictionChanged($event)" [initialYear]="selectedYear" [initialRestriction]="selectedRestriction"></app-year-analysis></mat-tab>
         <mat-tab label="Month"><app-month-analysis></app-month-analysis></mat-tab>
         <mat-tab label="Custom"><app-custom-analysis></app-custom-analysis></mat-tab>
     </mat-tab-group>

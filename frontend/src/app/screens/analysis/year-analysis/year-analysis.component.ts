@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { combineLatest, Subscription } from 'rxjs';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Category, CategoryService } from 'src/app/services/category/category.service';
@@ -52,6 +52,15 @@ export class YearAnalysisComponent implements OnInit {
       this.yearSelection = year;
     }
   }
+  @Input() set initialRestriction(restriction: Restriction) {
+    if(restriction){
+      this.selectedRestriction$.next(restriction);
+      this.restrictionSelected = restriction;
+    }
+  }
+
+  @Output() restrictionHasChanged = new EventEmitter<Restriction>();
+
 
   constructor(
     public categoryService: CategoryService,
@@ -104,10 +113,16 @@ export class YearAnalysisComponent implements OnInit {
       map(categories => categories.filter(category => category.name !== 'unassigned'))
     );
 
+    this.analysisService.getInitialCategory().subscribe(category=>{
+      this.categorySelected = parseInt(category);
+      this.categoryChanged();
+    })
+
 
     this.selectedYear$ = new BehaviorSubject(new Date().getFullYear());
 
     let initialRestriction = this.analysisService.getInitialRestriction();
+
     this.restrictionSelected = initialRestriction;
     this.selectedRestriction$ = new BehaviorSubject(initialRestriction || "none")
     this.expenses$ = this.expenseService.getExpenses("expenses").pipe(
@@ -253,7 +268,8 @@ export class YearAnalysisComponent implements OnInit {
 
   public restrictionChanged() {
     this.analysisService.setInitialRestriction(this.restrictionSelected)
-    this.selectedRestriction$.next(this.restrictionSelected)
+    this.selectedRestriction$.next(this.restrictionSelected);
+    this.restrictionHasChanged.emit(this.restrictionSelected);
     // this.filtersChanged()
   }
 
@@ -263,6 +279,10 @@ export class YearAnalysisComponent implements OnInit {
     this.selectedYear$.next(this.yearSelection);
   }
 
+  public categorySelectionChanged(){
+    this.analysisService.setInitialCategory(this.categorySelected.toString())
+    this.categoryChanged();
+  }
 
   public categoryChanged() {
     if (this.categorySelected == 0) {

@@ -2,4 +2,22 @@
     <mat-label>Subgroup name</mat-label>
     <input type="text" matInput  [(ngModel)]="subgroupName">
   </mat-form-field>
+
+
+  <section class="subgroups-section">
+    <div class="header">
+        <div class="title">Nested Subgroups</div>
+          <i class="material-icons" (click)="addSubgroup()">add</i>
+      </div>
+      <div class="content">
+        <div class="no-items" *ngIf="nestedSubgroups.length == 0">No subgroups exist yet</div>
+          <div class="subgroup-item" *ngFor="let subgroup of nestedSubgroups">
+            <span class="name">{{subgroup.name}}</span>
+            <i class="material-icons" (click)="editSubgroup(subgroup)">edit</i>
+            <i class="material-icons" (click)="deleteSubgroup(subgroup)">delete</i>
+
+          </div>
+      </div>
+  </section>
+
   <div class="submit-form" (click)="submit()"  mat-dialog-close>Save</div>

@@ -13,6 +13,7 @@ export interface Group{
 export interface Subgroup{
   id?: number;
   name: string;
+  subgroups?: Subgroup[];
 }
 
 export interface GroupTotal extends Group {
@@ -56,7 +57,9 @@ export class GroupsService {
     // If ID doesnt belong to a group --> must belong to subgroup
     if(!match){
       this.groups.forEach(group=>{
-        group.subgroups.forEach(subgroup=>{
+        let nestedSubgroups = this.getSubgroupsRecursive(group);
+
+        nestedSubgroups.forEach(subgroup=>{
           if(id == subgroup.id){
             match = subgroup;
           }
@@ -64,6 +67,27 @@ export class GroupsService {
       })
     }
     return match;
+  }
+
+  getSubgroupsRecursive(group: Group | Subgroup): Subgroup[]{
+    return group.subgroups?.reduce((acc,cur)=>{
+      acc.push(...this._getSubgroupsRecursive(cur));
+      return acc;
+    },[]) || [];
+  }
+
+  _getSubgroupsRecursive(subgroup: Subgroup, collected: Subgroup[] = []): Subgroup[]{
+    let result = [...collected, subgroup];
+    if(subgroup.subgroups?.length==0) return result;
+    return subgroup.subgroups?.reduce((acc,cur)=>{
+      if(cur.subgroups?.length>0){
+        acc.push(...this._getSubgroupsRecursive(cur, result))
+      }else{
+        acc.push(...result, cur)
+      }
+      return acc;
+    },[]) || result;
+
   }
 
   public addGroup(group: Group) {
@@ -85,7 +109,7 @@ export class GroupsService {
       req.onsuccess = () => {
         this.refreshGroups();
       }
-      
+
   }
 
   public getGroups(): Observable<Group[]> {

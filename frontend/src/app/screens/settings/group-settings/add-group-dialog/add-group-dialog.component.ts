@@ -19,7 +19,7 @@ export class AddGroupDialogComponent implements OnInit {
   public groupForm: FormGroup;
   public subgroups: Subgroup[] = [];
 
-  constructor(    
+  constructor(
     @Inject(MAT_DIALOG_DATA) public groupToEdit: Group,
     private dialogRef: MatDialogRef<AddCategoryDialogComponent>,
     private groupService: GroupsService,
@@ -49,6 +49,7 @@ export class AddGroupDialogComponent implements OnInit {
     const dialogRef = this.dialog.open(EditSubgroupDialogComponent); // add initial data here
 
     dialogRef.afterClosed().subscribe((result: Subgroup) => {
+      if(!result) return;
       this.subgroups.push(result);
     });
     // if(this.subgroupInputValue == ""){
@@ -88,7 +89,9 @@ export class AddGroupDialogComponent implements OnInit {
     const dialogRef = this.dialog.open(EditSubgroupDialogComponent, {data: subgroup}); // add initial data here
 
     dialogRef.afterClosed().subscribe((result: Subgroup) => {
+      debugger;
       this.subgroups.find(el=>el.id == result?.id).name = result?.name;
+      this.subgroups.find(el=>el.id == result?.id).subgroups = result?.subgroups || [];
     });
   }
 

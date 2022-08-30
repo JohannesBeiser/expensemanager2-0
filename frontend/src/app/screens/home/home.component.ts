@@ -7,6 +7,7 @@ import { CategoryService, Category } from 'src/app/services/category/category.se
 import * as Highcharts from 'highcharts';
 import { map, switchMap, switchMapTo, shareReplay, filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { GroupsService } from 'src/app/services/groups/groups.service';
 
 interface CategoryTotal {
   category: Category;
@@ -31,6 +32,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     public expenseService: ExpenseService,
     public filterService: FilterService,
     public categoryService: CategoryService,
+    public groupService: GroupsService
   ) { }
 
   private subs: Subscription[] = [];
@@ -326,11 +328,21 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     if (matches && filter.groups) {
+      // Because it makes sense when only setting the group "North America" we also want to include all its subgroups and tbeir nested subgroups
+      let relevantGroups = filter.groups.reduce((acc,cur)=>{
+        let group = this.groupService.getGroupById(cur)
+        acc.push(group);
+        if(group.subgroups?.length>0){
+          acc.push(...this.groupService.getSubgroupsRecursive(group))
+        }
+        return acc;
+      },[])
+
       let matchesInternal = false;
       //OR-comparison, true if one of the filters is true
-      filter.groups.forEach(groupFilter => {
+      relevantGroups.forEach(groupFilter => {
         if (!matchesInternal) {
-          matchesInternal = expense.group == groupFilter;
+          matchesInternal = expense.group == groupFilter.id;
         }
       })
       matches = matchesInternal;

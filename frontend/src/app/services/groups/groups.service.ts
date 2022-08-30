@@ -69,6 +69,11 @@ export class GroupsService {
     return match;
   }
 
+  /**
+   * Returns all of a grouips subgroups including all nested subgroups
+   * @param group The highest top level actual group that you want all its soubgroups of
+   * @returns
+   */
   getSubgroupsRecursive(group: Group | Subgroup): Subgroup[]{
     return group.subgroups?.reduce((acc,cur)=>{
       acc.push(...this._getSubgroupsRecursive(cur));

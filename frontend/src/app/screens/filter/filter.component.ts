@@ -37,7 +37,8 @@ export class FilterComponent implements OnInit {
       map(groups=>{
         return groups.reduce((acc,cur)=>{
           acc.push(cur);
-          cur.subgroups.forEach(subgroup=>acc.push(subgroup));
+          let subgroups = this.groupService.getSubgroupsRecursive(cur) || [];
+          acc.push(...subgroups);
           return acc;
         },[] as Group[])
       })
@@ -63,21 +64,21 @@ export class FilterComponent implements OnInit {
           } else {
             this.groupsSelected = null;
             this.allGroupsSelected = true;
-          }            
+          }
       }, 200);
     });
 
-  
+
   this.filterService.filterShown$.pipe(
     skip(1),
     filter((val) => !val)
     ).subscribe((isShown) => {
       this.submitFilter();
   })
-    
+
     this.sortMethod = localStorage.getItem("sortMethod") || "date";
   }
-  
+
   removeGroupFilter(index:number){
     this.groupsSelected.splice(index,1);
   }

@@ -20,9 +20,7 @@ export interface GroupTotal extends Group {
   amount: number;
   firstExpenseDate?: string;
   lastExpenseDate?: string;
-  deleted?: boolean;
   duration?: number;
-
 }
 
 @Injectable({

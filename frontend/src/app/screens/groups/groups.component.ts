@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { SliderService } from 'src/app/services/slider/slider.service';
-import { GroupsService, Group, GroupTotal } from 'src/app/services/groups/groups.service';
+import { GroupsService, Group, GroupTotal, Subgroup } from 'src/app/services/groups/groups.service';
 import { Observable, combineLatest, Subscription } from 'rxjs';
 import { ExpenseService, Expense } from 'src/app/services/expenses/expense.service';
 import { FilterService } from 'src/app/services/filter/filter.service';
@@ -49,7 +49,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
   public groups$: Observable<Group[]>
   public expenses$: Observable<Expense[]>;
   private subscription: Subscription;
-  public groupsTotals: GroupTotalCollections[];
+  public groupsTotals: GroupTotal[];
   public allTotals: { duration: number, amount: number };
 
   ngOnInit(): void {
@@ -57,18 +57,19 @@ export class GroupsComponent implements OnInit, OnDestroy {
     this.expenses$ = this.expenseService.getExpenses("expenses")
 
     this.subscription = combineLatest(this.expenses$, this.groups$).subscribe(([expenses, groups]) => {
-      this.groupsTotals = this.calculateGroupsTotals(expenses, groups);
-      debugger;
-      this.allTotals = this.groupsTotals.map((el) => {
-        return el.groupTotal.reduce((acc, cur) => {
-          if(!cur.duration){
-            return acc;
-          }
+      if(expenses.length>0 && groups.length>0){
+        this.groupsTotals = this.calculateGroupsTotals(expenses, groups);
+        this.allTotals = {duration:1, amount:2} /*this.groupsTotals.map((el) => {
+          return el.groupTotal.reduce((acc, cur) => {
+            if(!cur.duration){
+              return acc;
+            }
+            return { duration: acc.duration + cur.duration, amount: acc.amount + cur.amount }
+          }, { duration: 0, amount: 0 })
+        }).reduce((acc, cur) => {
           return { duration: acc.duration + cur.duration, amount: acc.amount + cur.amount }
-        }, { duration: 0, amount: 0 })
-      }).reduce((acc, cur) => {
-        return { duration: acc.duration + cur.duration, amount: acc.amount + cur.amount }
-      });
+        });*/
+      }
     })
   }
 
@@ -89,123 +90,90 @@ export class GroupsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/home']);
   }
 
-  calculateGroupsTotals(expenses: Expense[], groups_origin: Group[]): GroupTotalCollections[] {
-    let sorterHelper = {};
-    let groups = [...groups_origin].reverse();
-    // groups.push({ key: null, groupName: "General" });
-    groups.forEach((group) => {
-      sorterHelper[group.id] = {};
-      sorterHelper[group.id].amount = 0;
-      sorterHelper[group.id].expenses = [];
-      sorterHelper[group.id].subgroups = {}
-
-      group.subgroups.forEach(subgroup=>{
-        sorterHelper[group.id].subgroups[subgroup.id] = {};
-        sorterHelper[group.id].subgroups[subgroup.id].amount = 0;
-        sorterHelper[group.id].subgroups[subgroup.id].expenses = [];
-      })
-    })
-
-    expenses.forEach(expense => {
-      let expenseGroup = expense.group;
-      //Skip expenses who have a group that has been deleted
-      if (expenseGroup !== 0) { // 0 being general
-        if (sorterHelper[expenseGroup]) {
-          sorterHelper[expenseGroup].amount += expense.amount;
-          sorterHelper[expenseGroup].expenses.push(expense)
-        } else {
-          // let a = this.groupsService.getGroupById(expenseGroup);
-          // groups.push({ key: null, name: this.groupsService.getGroupById(expenseGroup).name });
-
-          //sort expense into subgroup
-          groups.forEach(group=>{
-            if(sorterHelper[group.id].subgroups[expenseGroup]){
-              sorterHelper[group.id].amount += expense.amount; // add to parents total
-              sorterHelper[group.id].expenses.push(expense)// add to parents expense list
-              sorterHelper[group.id].subgroups[expenseGroup].amount += expense.amount;
-              sorterHelper[group.id].subgroups[expenseGroup].expenses.push(expense);
-            }
-          })
+  /**
+   * searches in an array of groups for a specific group by ID including recursively deep search
+   */
+  getGroupMatchRecursively(groups: Group[], id: number): Group | Subgroup {
+    let match = undefined;
+    groups.forEach(group => {
+      if(group.id == id){
+        match= group;
+        return;
+      };
+      if(group.subgroups?.length>0){
+        let subgroupMatch = this.getGroupMatchRecursively(group.subgroups, id);
+        if(subgroupMatch){
+          match= subgroupMatch;
+          return;
         }
+      }else{
+        return;
+        // go to next (parent) group
       }
-    })
-
-
-    let result: GroupTotal[] = groups.map<GroupTotal>((group) => {
-      let amountForGroup: number = sorterHelper[group.id].amount;
-      let expenses: Expense[] = sorterHelper[group.id].expenses;
-      let isInactive: boolean = !sorterHelper[group.id].active;
-
-      let result: GroupTotal;
-
-      if (expenses.length > 0) {
-        let expensesSorted = expenses.sort((a, b) => this.filterService.dateSorter(a.date, b.date));
-        let first = expensesSorted[expensesSorted.length - 1].date;
-        let last = expensesSorted[0].date;
-        let durationInDays = differenceInDays(new Date(last), new Date(first)) + 1;
-
-        // let mappedSubgroups= subgroups.
-      let subgroupsArray = Object.entries(sorterHelper[group.id].subgroups).map((el: any)=>{
-        return {id: parseInt(el[0]), amount: el[1].amount, expenses: el[1].expenses}
-      })
-      let subgroupTotals = [];
-
-      if(subgroupsArray.length>0){
-        subgroupTotals = subgroupsArray.map(subgroup=>{
-          if(subgroup.expenses.length >0){
-            let subgroupExpensesSorted = subgroup.expenses.sort((a, b) => this.filterService.dateSorter(a.date, b.date));
-            let subgroupFirst = subgroupExpensesSorted[subgroupExpensesSorted.length - 1].date;
-            let subgroupLast = subgroupExpensesSorted[0].date;
-            let subgroupDurationInDays = differenceInDays(new Date(subgroupLast), new Date(subgroupFirst)) + 1;
-            return {...subgroup,  firstExpenseDate: subgroupFirst, lastExpenseDate: subgroupLast, duration: subgroupDurationInDays}
-          }else{
-            return {...subgroup,  firstExpenseDate: null, lastExpenseDate: null, duration: null}
-          }
-
-        });
-      }
-        result = { ...group, ...{ amount: amountForGroup, firstExpenseDate: first, lastExpenseDate: last, duration: durationInDays, subgroupTotals: subgroupTotals } }
-      } else {
-        result = { ...group, ...{ amount: amountForGroup } }
-      }
-
-      return result
     });
 
-
-    let mapped = result.reduce((acc, cur) => {
-        if (cur.active) {
-          if (cur.name !== "General") {
-            let next = acc;
-            next[0].groupTotal.push(cur)
-            return next
-          } else {
-            return acc
-          }
-        } else {
-          let next = acc;
-          next[1].groupTotal.push(cur)
-          return next
-        }
-    }, [{ type: "active", groupTotal: [] }, { type: "deleted", groupTotal: [] }]);
-
-    mapped.forEach(groupCollection => {
-      groupCollection.groupTotal.sort((a, b) => this.filterService.dateSorter(a.firstExpenseDate, b.firstExpenseDate))
-    });
-
-
-    // mapped[0].groupTotal.fo
-
-    return mapped;
+    return match; // should never happen
   }
 
-  public currentlyOpenHelpMenu: {index:number, outer:number} = {index: 0, outer:0}
+  calculateGroupsTotals(expenses: Expense[], groups_origin: Group[]): GroupTotal[] {
+    //new code
 
-  toggleHelpMenu(index: number, outer: number): void {
-    if(this.currentlyOpenHelpMenu.index == index && this.currentlyOpenHelpMenu.outer == outer){
-      this.currentlyOpenHelpMenu= {index:0, outer:0};
+    /**   at first all expenses are just added nested into the deepest matcgh, jnot accumulkating the amount for the parent,
+     * so "north america" diesnt get the "GDT" amounts yet, so that we dont have to find each childs parent recursively to the top every time we add someting
+     *
+     * After all is done we can recursively add the totals to all parents bubelling upwards
+     */
+    expenses.forEach(expense=>{
+      let expenseGroup = expense.group;
+      if(expenseGroup !== 0){
+        let match: {amount: number, firstExpenseDate: string, lastExpenseDate: string, durationInDays?: number, name: string, id: number, subgroups?: Subgroup[]}= this.getGroupMatchRecursively(groups_origin, expenseGroup) as any;
+
+        if(!match){
+          alert("Gruppe von expense konnte nicht zugeordnet werden")
+        }
+
+        if(!match.amount){
+          match.amount = expense.amount;
+        }else{
+          match.amount += expense.amount;
+        }
+
+        if(!match.firstExpenseDate){
+          match.firstExpenseDate = expense.date;
+        }else{
+          if(new Date(match.firstExpenseDate)> new Date(expense.date)){
+            match.firstExpenseDate = expense.date
+          }
+        }
+
+        if(!match.lastExpenseDate){
+          match.lastExpenseDate = expense.date;
+        }else{
+          if(new Date(match.lastExpenseDate)< new Date(expense.date)){
+            match.lastExpenseDate = expense.date
+          }
+        }
+      }
+    });
+
+
+    let totals: GroupTotal[]= groups_origin.map(el=>{
+      (el as any).durationInDays = differenceInDays(new Date((el as any).lastExpenseDate), new Date((el as any).firstExpenseDate )) +1;
+      return el as any
+    });
+
+    let sorted = totals.sort((a, b) => this.filterService.dateSorter(a.firstExpenseDate, b.firstExpenseDate))
+
+    return sorted;
+  }
+
+  public currentlyOpenIndex : number = undefined
+
+  toggleHelpMenu(index: number): void {
+    if(this.currentlyOpenIndex == index){
+      this.currentlyOpenIndex= undefined
     }else{
-      this.currentlyOpenHelpMenu = {index,outer}
+      this.currentlyOpenIndex = index
     }
   }
 }

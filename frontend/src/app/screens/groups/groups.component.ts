@@ -51,7 +51,6 @@ export class GroupsComponent implements OnInit, OnDestroy {
   private subscription: Subscription;
   public groupsTotals: GroupTotalCollections[];
   public allTotals: { duration: number, amount: number };
-  public helper = {}
 
   ngOnInit(): void {
     this.groups$ = this.groupsService.getGroups();
@@ -59,6 +58,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
     this.subscription = combineLatest(this.expenses$, this.groups$).subscribe(([expenses, groups]) => {
       this.groupsTotals = this.calculateGroupsTotals(expenses, groups);
+      debugger;
       this.allTotals = this.groupsTotals.map((el) => {
         return el.groupTotal.reduce((acc, cur) => {
           if(!cur.duration){
@@ -69,9 +69,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
       }).reduce((acc, cur) => {
         return { duration: acc.duration + cur.duration, amount: acc.amount + cur.amount }
       });
-      this.initializeHelper();
     })
-    this.helper = {}
   }
 
   ngOnDestroy() {
@@ -91,26 +89,20 @@ export class GroupsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/home']);
   }
 
-  initializeHelper() {
-    for (let i = 0; i < this.groupsTotals.length; i++) {
-      this.helper[i] = {};
-    }
-  }
-
   calculateGroupsTotals(expenses: Expense[], groups_origin: Group[]): GroupTotalCollections[] {
     let sorterHelper = {};
     let groups = [...groups_origin].reverse();
     // groups.push({ key: null, groupName: "General" });
-    groups.forEach((el) => {
-      sorterHelper[el.id] = {};
-      sorterHelper[el.id].amount = 0;
-      sorterHelper[el.id].expenses = [];
-      sorterHelper[el.id].subgroups = {}
+    groups.forEach((group) => {
+      sorterHelper[group.id] = {};
+      sorterHelper[group.id].amount = 0;
+      sorterHelper[group.id].expenses = [];
+      sorterHelper[group.id].subgroups = {}
 
-      el.subgroups.forEach(subgroup=>{
-        sorterHelper[el.id].subgroups[subgroup.id] = {};
-        sorterHelper[el.id].subgroups[subgroup.id].amount = 0;
-        sorterHelper[el.id].subgroups[subgroup.id].expenses = [];
+      group.subgroups.forEach(subgroup=>{
+        sorterHelper[group.id].subgroups[subgroup.id] = {};
+        sorterHelper[group.id].subgroups[subgroup.id].amount = 0;
+        sorterHelper[group.id].subgroups[subgroup.id].expenses = [];
       })
     })
 
@@ -124,13 +116,13 @@ export class GroupsComponent implements OnInit, OnDestroy {
         } else {
           // let a = this.groupsService.getGroupById(expenseGroup);
           // groups.push({ key: null, name: this.groupsService.getGroupById(expenseGroup).name });
-          
-          //sort expense into subgroup 
+
+          //sort expense into subgroup
           groups.forEach(group=>{
             if(sorterHelper[group.id].subgroups[expenseGroup]){
               sorterHelper[group.id].amount += expense.amount; // add to parents total
               sorterHelper[group.id].expenses.push(expense)// add to parents expense list
-              sorterHelper[group.id].subgroups[expenseGroup].amount += expense.amount; 
+              sorterHelper[group.id].subgroups[expenseGroup].amount += expense.amount;
               sorterHelper[group.id].subgroups[expenseGroup].expenses.push(expense);
             }
           })
@@ -169,9 +161,9 @@ export class GroupsComponent implements OnInit, OnDestroy {
           }else{
             return {...subgroup,  firstExpenseDate: null, lastExpenseDate: null, duration: null}
           }
-         
+
         });
-      }   
+      }
         result = { ...group, ...{ amount: amountForGroup, firstExpenseDate: first, lastExpenseDate: last, duration: durationInDays, subgroupTotals: subgroupTotals } }
       } else {
         result = { ...group, ...{ amount: amountForGroup } }
@@ -179,7 +171,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
       return result
     });
-    
+
 
     let mapped = result.reduce((acc, cur) => {
         if (cur.active) {
@@ -207,19 +199,13 @@ export class GroupsComponent implements OnInit, OnDestroy {
     return mapped;
   }
 
-
-
-  helpMenuOpenForIndex(index: number, outer: number): string {
-    return this.helper[outer][index] || 'out';
-  }
+  public currentlyOpenHelpMenu: {index:number, outer:number} = {index: 0, outer:0}
 
   toggleHelpMenu(index: number, outer: number): void {
-    if (this.helper[outer][index]) {
-      //already exists --> is open
-      this.initializeHelper();
-    } else {
-      this.initializeHelper();
-      this.helper[outer][index] = 'in';
+    if(this.currentlyOpenHelpMenu.index == index && this.currentlyOpenHelpMenu.outer == outer){
+      this.currentlyOpenHelpMenu= {index:0, outer:0};
+    }else{
+      this.currentlyOpenHelpMenu = {index,outer}
     }
   }
 }

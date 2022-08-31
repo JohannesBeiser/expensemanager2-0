@@ -44,7 +44,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   public currentFilter$: BehaviorSubject<ExpenseFilter>;
   public monthSwitched$: BehaviorSubject<MonthYear>;
   public sortMethod$: BehaviorSubject<string>;
-  public limitedCategory$: BehaviorSubject<Category>
+  public limitedCategory$: BehaviorSubject<Category>;
+  public manualUpdate$: BehaviorSubject<void> = new BehaviorSubject(undefined);
 
   public expenses: Expense[];
   public totalAmount: number = 0;
@@ -63,7 +64,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       filter(categroies=>categroies.length>0)
     );
 
-    let sub1 = combineLatest(this.currentFilter$, this.expenses$, this.monthSwitched$, this.sortMethod$, this.limitedCategory$,allCategories$)
+    let sub1 = combineLatest(this.currentFilter$, this.expenses$, this.monthSwitched$, this.sortMethod$, this.limitedCategory$,allCategories$,this.manualUpdate$)
       .subscribe(([currentFilter, expenses, monthSwitch, sortMethod, limitedCategory, allCategories]) => {
         let filtered = expenses.filter((expense) => {
           return this.matchesFilter(expense, currentFilter, monthSwitch)
@@ -308,6 +309,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
+  public investFilterActive: boolean = localStorage.getItem('investRestrictionActive')=='true' || false;
+
+  public toggleInvestRestriction(){
+    this.investFilterActive = !this.investFilterActive;
+    localStorage.setItem('investRestrictionActive',this.investFilterActive+ "");
+    this.manualUpdate$.next();
+  }
+
   private matchesFilter(expense: Expense, filter: ExpenseFilter, monthSwitch: MonthYear): boolean {
     let matches = true;
     let expenseYear = expense.date.substring(0, 4);
@@ -347,6 +356,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       })
       matches = matchesInternal;
     }
+
+    let excludeInvestExpenses = localStorage.getItem('investRestrictionActive')=='true';
+    if(expense.category == 1638217648875 && excludeInvestExpenses){
+      matches = false;
+    }
+
     return matches
   }
 }

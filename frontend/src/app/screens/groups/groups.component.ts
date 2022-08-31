@@ -7,6 +7,8 @@ import { FilterService } from 'src/app/services/filter/filter.service';
 import { transition, trigger, state, style, animate } from '@angular/animations';
 import { differenceInDays } from 'date-fns';
 import { Router } from '@angular/router';
+import { distinctUntilChanged } from 'rxjs/operators';
+import { numberFormat } from 'highcharts';
 
 type GroupTotalCollections = {
   type: string;
@@ -56,19 +58,23 @@ export class GroupsComponent implements OnInit, OnDestroy {
     this.groups$ = this.groupsService.getGroups();
     this.expenses$ = this.expenseService.getExpenses("expenses")
 
-    this.subscription = combineLatest(this.expenses$, this.groups$).subscribe(([expenses, groups]) => {
+    this.subscription = combineLatest(this.expenses$, this.groups$).pipe(distinctUntilChanged()).subscribe(([expenses, groups]) => {
       if(expenses.length>0 && groups.length>0){
-        this.groupsTotals = this.calculateGroupsTotals(expenses, groups);
-        this.allTotals = {duration:1, amount:2} /*this.groupsTotals.map((el) => {
-          return el.groupTotal.reduce((acc, cur) => {
-            if(!cur.duration){
-              return acc;
-            }
-            return { duration: acc.duration + cur.duration, amount: acc.amount + cur.amount }
-          }, { duration: 0, amount: 0 })
-        }).reduce((acc, cur) => {
-          return { duration: acc.duration + cur.duration, amount: acc.amount + cur.amount }
-        });*/
+        var clonedGroups = JSON.parse(JSON.stringify(groups));
+        this.groupsTotals = this.calculateGroupsTotals(expenses, clonedGroups);
+
+        let tempAllTotals = expenses.reduce((acc,cur)=>{
+          acc.amount+=cur.amount;
+          if(new Date(cur.date)<acc.firstDate || !acc.firstDate){
+            acc.firstDate = new Date(cur.date)
+          };
+          if(new Date(cur.date)>acc.lastDate || !acc.lastDate){
+            acc.lastDate = new Date(cur.date)
+          };
+          return acc;
+        },{firstDate: undefined, lastDate: undefined, amount: 0, duration:0});
+        tempAllTotals.duration =  differenceInDays(tempAllTotals.lastDate, tempAllTotals.firstDate);
+        this.allTotals = tempAllTotals;
       }
     })
   }
@@ -116,8 +122,6 @@ export class GroupsComponent implements OnInit, OnDestroy {
   }
 
   calculateGroupsTotals(expenses: Expense[], groups_origin: Group[]): GroupTotal[] {
-    //new code
-
     /**   at first all expenses are just added nested into the deepest matcgh, jnot accumulkating the amount for the parent,
      * so "north america" diesnt get the "GDT" amounts yet, so that we dont have to find each childs parent recursively to the top every time we add someting
      *
@@ -159,7 +163,14 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
     let totals: GroupTotal[]= groups_origin.map(el=>{
       (el as any).durationInDays = differenceInDays(new Date((el as any).lastExpenseDate), new Date((el as any).firstExpenseDate )) +1;
+      if(el.subgroups?.length>0){
+        el.subgroups = this.addDurationRecursive(el.subgroups);
+      }
       return el as any
+    });
+
+    (groups_origin as GroupTotal[]).forEach((group)=>{
+      this.mutateTotalFromSubgroups(group);
     });
 
     let sorted = totals.sort((a, b) => this.filterService.dateSorter(a.firstExpenseDate, b.firstExpenseDate))
@@ -167,7 +178,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
     return sorted;
   }
 
-  public currentlyOpenIndex : number = undefined
+  public currentlyOpenIndex : number = undefined; //FIEMX change to undefiend
 
   toggleHelpMenu(index: number): void {
     if(this.currentlyOpenIndex == index){
@@ -176,4 +187,38 @@ export class GroupsComponent implements OnInit, OnDestroy {
       this.currentlyOpenIndex = index
     }
   }
+
+  addDurationRecursive(groups: Group[]): Group[]{
+      return groups.map(el=>{
+        (el as any).durationInDays = differenceInDays(new Date((el as any).lastExpenseDate), new Date((el as any).firstExpenseDate));
+        if(el.subgroups?.length>0){
+          el.subgroups = this.addDurationRecursive(el.subgroups)
+        }
+        return el;
+      })
+    }
+
+    /**
+     * Changes a groups total according to its child groups, takes nested subgroups into account thus calls itself recursively
+     *
+     * Does actually mutate all data inside, so the base object is gonna be formatted
+     */
+    mutateTotalFromSubgroups(group: GroupTotal){
+      if(group.subgroups?.length>0){
+        let total: number = group.subgroups.reduce((acc,cur)=>{
+          if(cur.subgroups?.length==0){
+            acc+=cur.amount; // TODO: maybe also alter date/duration of parent? ! should actually do that : FIXME
+          }else{
+            // has nested subgroup --> mutate their total
+            this.mutateTotalFromSubgroups(cur); // before adding up the current subgroups amount we need to mutat its own total since it has subgroups itself
+            acc+= cur.amount;
+          }
+          return acc;
+        },0);
+        group.amount += total;
+      }else{
+        return group.amount; // no mutation needed, already correct
+      }
+    }
+
 }

@@ -46,16 +46,7 @@ export class DefaultsComponent implements OnInit {
     this.tagFormControl = new FormControl('');
     this.selectedTagIds = JSON.parse(localStorage.getItem("defaultTags")) || [];
 
-    this.groupsWithSubgroups$ = this.groupsService.getGroups().pipe(
-      map(groups=> groups.filter(group=> group.active)),
-      map(groups=>{
-        return groups.reduce((acc,cur)=>{
-          acc.push(cur);
-          cur.subgroups.forEach(subgroup=>acc.push(subgroup));
-          return acc;
-        },[] as Group[])
-      })
-    );
+    this.groupsWithSubgroups$ = this.groupsService.getAllGroupsIncludingSubgroups();
 
     this.categories$ = this.categoryService.getCategoriesNew().pipe(map(categories=> categories.filter(category=> category.id !== 0)));
 

@@ -26,8 +26,8 @@
     //       }
     //     }
     //   }
-    // } 
-  } 
+    // }
+  }
 }
 
 .home-component-container {
@@ -83,6 +83,23 @@
     .total-amount {
       font-size: 2em;
       border-bottom: 1px solid #ddd;
+      display: flex;
+      padding-right: 42px;
+
+      span{
+        flex: 1;
+      }
+    }
+
+    .savings-icon{
+      width: 32px;
+      height: 32px;
+      display: flex;
+      opacity: 1;
+
+      &.active{
+        opacity: 0.4;
+      }
     }
 
     .chart-icon{
@@ -136,7 +153,7 @@
         }
       }
     }
-  }  
+  }
 
   .filter-container {
     z-index: 1;

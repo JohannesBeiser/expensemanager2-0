@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import {  ReplaySubject, Observable, BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { IndexedDBConnectionService } from '../indexed-dbconnection.service';
 
 export interface Group{
@@ -10,17 +11,36 @@ export interface Group{
   active?: boolean;
 }
 
+export interface GroupTotalHelper{
+  key?: number;
+  name: string;
+  id?: number;
+  subgroups?: SubgroupTotal[];
+  active?: boolean;
+}
+
+
 export interface Subgroup{
   id?: number;
   name: string;
   subgroups?: Subgroup[];
 }
 
-export interface GroupTotal extends Group {
+export interface SubgroupTotal{
+  id?: number;
+  name: string;
+  subgroups?: SubgroupTotal[];
   amount: number;
   firstExpenseDate?: string;
   lastExpenseDate?: string;
-  duration?: number;
+  durationInDays?: number;
+}
+
+export interface GroupTotal extends GroupTotalHelper {
+  amount: number;
+  firstExpenseDate?: string;
+  lastExpenseDate?: string;
+  durationInDays?: number;
 }
 
 @Injectable({
@@ -65,6 +85,18 @@ export class GroupsService {
       })
     }
     return match;
+  }
+
+  getAllGroupsIncludingSubgroups(): Observable<Group[]>{
+    return this.getGroupsWithoutUpdate().pipe(
+      map(groups=>{
+        return groups.reduce((acc,cur)=>{
+          acc.push(cur);
+          acc.push(...this.getSubgroupsRecursive(cur))
+          return acc;
+        },[])
+      })
+    )
   }
 
   /**

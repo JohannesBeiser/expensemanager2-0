@@ -64,7 +64,8 @@ import { TagSettingsComponent } from './screens/settings/tag-settings/tag-settin
 import { AddTagDialogComponent } from './screens/settings/tag-settings/add-tag-dialog/add-tag-dialog.component';
 import { TagSettingsBottomSheetComponent } from './screens/settings/tag-settings/tag-settings-bottom-sheet/tag-settings-bottom-sheet.component';
 import { TagListComponent } from './components/tag-list/tag-list.component';
-import { AboutComponent } from './screens/settings/about/about.component'
+import { AboutComponent } from './screens/settings/about/about.component';
+import { SubgroupCardComponent } from './components/subgroup-card/subgroup-card.component'
 
 registerLocaleData(localeDe, 'de');
 
@@ -112,7 +113,8 @@ registerLocaleData(localeDe, 'de');
     AddTagDialogComponent,
     TagSettingsBottomSheetComponent,
     TagListComponent,
-    AboutComponent
+    AboutComponent,
+    SubgroupCardComponent
   ],
   imports: [
     BrowserModule,

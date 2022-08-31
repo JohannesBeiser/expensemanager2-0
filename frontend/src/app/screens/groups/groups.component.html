@@ -18,31 +18,16 @@
         <div class="more-info" [@slideInOut]="(currentlyOpenIndex == i) ? 'in': 'out'">
           <div class="mb-8">
             <span class="regular-font mr-8">Duration:</span>
-            <span>{{group.duration | durationWeekDay}}</span>
+            <span>{{group.durationInDays | durationWeekDay}}</span>
           </div>
           <div class="mb-8">
             <span class="regular-font mr-8">Cost:</span>
-            <span>{{group.amount/ group.duration | number:'1.0-0':'de-DE'}}€ per day</span>
+            <span>{{group.amount/ group.durationInDays | number:'1.0-0':'de-DE'}}€ per day</span>
           </div>
 
           <div class="subgroups-title">Subgroups</div>
           <div class="mb-8 subgroups">
-              <div class="subgroup" *ngFor="let subgroupTotal of group.subgroupTotals">
-                <div class="wrapper">
-                  <div class="name">{{groupsService.getGroupById(subgroupTotal.id).name}}</div>
-                  <span *ngIf="subgroupTotal.amount>0">{{subgroupTotal.amount | prettyCurrency}}</span>
-                </div>
-                <div class="date my-8" *ngIf="subgroupTotal.firstExpenseDate && subgroupTotal.lastExpenseDate">{{ {firstExpenseDate:subgroupTotal.firstExpenseDate, lastExpenseDate: subgroupTotal.lastExpenseDate} | dateDuration }}</div>
-                <div *ngIf="subgroupTotal.amount==0">No expenses yet</div>
-                <div class="mb-8" *ngIf="subgroupTotal.amount > 0">
-                  <span class="regular-font mr-8">Duration:</span>
-                  <span>{{subgroupTotal.duration | durationWeekDay}}</span>
-                </div>
-                <div class="mb-8" *ngIf="subgroupTotal.amount > 0">
-                  <span class="regular-font mr-8">Cost:</span>
-                  <span *ngIf="subgroupTotal.firstExpenseDate && subgroupTotal.lastExpenseDate">{{subgroupTotal.amount/ subgroupTotal.duration | number:'1.0-0':'de-DE'}}€ per day</span>
-                </div>
-              </div>
+            <app-subgroup-card *ngFor="let subgroup of group.subgroups" [subgroupTotal]="subgroup"></app-subgroup-card>
           </div>
 
           <div class="show-list-wrapper" (click)="showDetailList(group.name)">

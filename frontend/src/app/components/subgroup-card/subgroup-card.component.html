@@ -1,0 +1,20 @@
+<div class="subgroup-component-container">
+  <div class="wrapper">
+    <div class="name">{{groupsService.getGroupById(subgroupTotal.id).name}}</div>
+    <span *ngIf="subgroupTotal.amount>0">{{subgroupTotal.amount | prettyCurrency}}</span>
+  </div>
+  <div class="date my-8" *ngIf="subgroupTotal.firstExpenseDate && subgroupTotal.lastExpenseDate">{{ {firstExpenseDate:subgroupTotal.firstExpenseDate, lastExpenseDate: subgroupTotal.lastExpenseDate} | dateDuration }}</div>
+  <div *ngIf="subgroupTotal.amount==0">No expenses yet</div>
+  <div class="mb-8" *ngIf="subgroupTotal.amount > 0">
+    <span class="regular-font mr-8">Duration:</span>
+    <span>{{subgroupTotal.durationInDays | durationWeekDay}}</span>
+  </div>
+  <div class="mb-8" *ngIf="subgroupTotal.amount > 0">
+    <span class="regular-font mr-8">Cost:</span>
+    <span *ngIf="subgroupTotal.firstExpenseDate && subgroupTotal.lastExpenseDate">{{subgroupTotal.amount/ subgroupTotal.durationInDays | number:'1.0-0':'de-DE'}}€ per day</span>
+  </div>
+  <div class="inner-subgroup-wrapper" *ngIf="subgroupTotal.subgroups?.length>0">
+    <div>Subgroups</div>
+      <app-subgroup-card *ngFor="let nested of subgroupTotal.subgroups" [subgroupTotal]="nested"></app-subgroup-card>
+  </div>
+</div>

@@ -3,7 +3,11 @@
   <div class="general" *ngIf="totalAmount >0">
     <div class="total-amount" >
       <span>{{totalAmount | prettyCurrency}}</span>
+      <div class="savings-icon" (click)="toggleInvestRestriction()" [class.active]="investFilterActive">
+        <img src="../../../assets/images/savings.png" alt="">
+      </div>
     </div>
+
 
     <i class="material-icons chart-icon" [class.active]="chartOpened" (click)="toggleChart()" *ngIf="chartData">timeline</i>
 
@@ -15,7 +19,7 @@
       <div class="chart-list">
         <div class="month-item" *ngFor="let item of chartData">
           <span class="month">{{item.x | date: 'MMM y'}}</span>
-          <span class="amount">{{item.y | prettyCurrency}}</span>          
+          <span class="amount">{{item.y | prettyCurrency}}</span>
         </div>
       </div>
 

@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { IndexedDBConnectionService } from '../indexed-dbconnection.service';
 import { ReplaySubject, BehaviorSubject, Observable } from 'rxjs';
-import { Group } from '../groups/groups.service';
 
 export interface CategoryColor{
   food: string;
@@ -21,6 +20,17 @@ export interface Category{
   key?: number;
 }
 
+export const HardcodedCategories = {
+  Food: 1637006412319,
+  Transport: 1637006412320,
+  Accommodation: 1637006412321,
+  Multimedia: 1637006412322,
+  HealthInsurance: 1637006412324,
+  General: 1637006412325,
+  ClothingGear: 1637006412326,
+  Invest: 1638217648875,
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -33,7 +43,7 @@ export class CategoryService {
   private categories$: BehaviorSubject<Category[]>;
   private categories: Category[];
 
-  constructor( private indexedDBService: IndexedDBConnectionService) { 
+  constructor( private indexedDBService: IndexedDBConnectionService) {
     this.connection$ = new ReplaySubject(1);
     this.createCategoryDatabase();
     this.categories$ = new BehaviorSubject<Category[]>([]);
@@ -68,7 +78,7 @@ export class CategoryService {
 
   public addCategory(category: Category){
     //alter color to make it HEX
-    category.id = Date.now(); // Quick way to generate a unique ID. Not possible to mess anything up ina  use-case like this with 1 user only and local data 
+    category.id = Date.now(); // Quick way to generate a unique ID. Not possible to mess anything up ina  use-case like this with 1 user only and local data
     let tx = this.db.transaction(['categories'], 'readwrite');
     let store = tx.objectStore('categories');
     store.add(category);
@@ -87,7 +97,7 @@ export class CategoryService {
     req.onsuccess = () => {
       this.refreshCategories();
     }
-    
+
   }
 
   public getCategoriesNew(): Observable<Category[]> {

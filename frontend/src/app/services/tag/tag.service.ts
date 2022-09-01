@@ -10,12 +10,35 @@ export interface Tag {
   key?: number,
 }
 
+export const HardcodedTags={
+  Travel: 1638199877164,
+  NonTravel: 1638199880620,
+  ThruHike: 1639339181507,
+  Groceries: 1639339147966,
+  EatOut: 1639339152378,
+  Rent: 1639339338552,
+  Flight: 1639339455828,
+  Hairdresser: 1639339610335,
+  HotelAirBnB: 1639339933396,
+  Hostel: 1639340193701,
+  Camping: 1639340197500,
+  Resupply: 1639843667689,
+  Shipment: 1640136505672,
+  Car: 1639874253792,
+  Train: 1640702671588,
+  Bus: 1640702675776,
+  Boat: 1653081031035,
+  Gift: 1639339570936,
+  Taxi: 1640702695771
+}
+
+
 @Injectable({
   providedIn: 'root'
 })
 export class TagService {
 
-    
+
   private db: any;
   private tags$: BehaviorSubject<Tag[]>;
   private tags: Tag[];
@@ -73,7 +96,7 @@ export class TagService {
       req.onsuccess = () => {
         this.refreshTags();
       }
-      
+
   }
 
   public getTags(): Observable<Tag[]> {

@@ -159,11 +159,10 @@
         </app-card>
     </div>
 
-
     <div *ngIf="chartReady" class="chart-section">
         <app-card>
             <div class="title-container" header>
-                <div class="title">Totals</div>
+                <div class="title">Tags</div>
             </div>
             <div body class="totals-container">
                 <div class="totals-list">
@@ -174,6 +173,19 @@
                     <div class="totals-list-item">
                         <div class="title">Invest</div>
                         <div class="value">{{getAverageValues(1638217648875).total | number: '1.0-0':'de-DE'}} €</div>
+                    </div>
+                    <div class="totals-list-item">
+                      <div class="title">Thru-Hiking</div>
+                      <div class="value">{{stats.totalThruHiking | number: '1.0-0':'de-DE'}} €</div>
+                    </div>
+                    <div class="totals-list-item">
+                        <div class="title">Thru-Hiking cost / month</div>
+                        <div class="value">{{stats.totalThruHiking/ stats.totalDaysThruHiking*30 | number: '1.0-0':'de-DE'}} €</div>
+                    </div>
+
+                    <div class="totals-list-item">
+                        <div class="title">Travel cost per Month</div>
+                        <div class="value">{{stats.totalTravel/ stats.totalDaysTravel*30 | number: '1.0-0':'de-DE'}} €</div>
                     </div>
                     <div class="totals-list-item">
                         <div class="title">Wasted money</div>

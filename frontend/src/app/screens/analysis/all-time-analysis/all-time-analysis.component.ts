@@ -12,6 +12,7 @@ import { combineLatest } from 'rxjs';
 import { AnalysisService } from 'src/app/services/analysis/analysis.service';
 import { BehaviorSubject } from 'rxjs';
 import { skip } from "rxjs/operators";
+import { HardcodedTags } from 'src/app/services/tag/tag.service';
 
 
 type Stats = {
@@ -27,6 +28,10 @@ type Stats = {
   totalWasted: number,
   totalSpecial: number,
   totalInvest: number,
+  totalDaysTravel: number,
+  totalDaysNonTravel: number,
+  totalThruHiking: number,
+  totalDaysThruHiking: number,
   yearsData: {
     year: number, // initial calc
     firstDate: Date,// initial calc
@@ -81,6 +86,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
     private expenseService: ExpenseService,
     public categoryService: CategoryService,
     public analysisService: AnalysisService,
+    public groupService: GroupsService,
     public dialog: MatDialog,
   ) { }
 
@@ -140,7 +146,10 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
         this.filtersChanged();
       })
 
-    let sub = combineLatest([this.expenses$, this.categories$]).subscribe(([expenses]) => {
+    let groupsWithSubgroups$ =this.groupService.getAllGroupsIncludingSubgroups();
+    let groups$ =this.groupService.getGroups();
+
+    let sub = combineLatest([this.expenses$, this.categories$, groupsWithSubgroups$, groups$]).subscribe(([expenses, categories, groupsWithSubgroups, groups]) => {
       this.stats = {
         amountOfDays: 0,
         averagePerMonth: 0,
@@ -156,10 +165,21 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
         totalWasted: 0,
         totalSpecial: 0,
         totalInvest: 0,
+        totalThruHiking: 0,
+        totalDaysTravel: 0,
+        totalDaysNonTravel: 0,
+        totalDaysThruHiking: 0,
       }
       let firstDate: Date;
       let lastDate: Date;
 
+      var clonedGroupsWithSubgroups = JSON.parse(JSON.stringify(groupsWithSubgroups));
+      var clonedGroups = JSON.parse(JSON.stringify(groups));
+
+      let groupTotalsWithSubgroups= this.groupService.calculateGroupsTotals(expenses, clonedGroupsWithSubgroups);
+      let groupTotals= this.groupService.calculateGroupsTotals(expenses, clonedGroups);
+      let handledThruHikingGroups: number[] = []; // when looking through expenses if one is found that has the trhun hiking tag, we add its ENDIRE groups durationOfDays to the thruHiking total duration. We need to memorized groups that we did this for to do thisn only once per group
+      let handledTravelGroups: number[] = []; // when looking through expenses if one is found that has the trhun hiking tag, we add its ENDIRE groups durationOfDays to the thruHiking total duration. We need to memorized groups that we did this for to do thisn only once per group
 
       expenses.forEach(expense => {
         if (new Date(expense.date) < new Date()) {
@@ -177,6 +197,22 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
 
           if (new Date(expense.date) > lastDate) {
             lastDate = new Date(expense.date);
+          }
+
+          if(expense.tags.includes(HardcodedTags.ThruHike) && !handledThruHikingGroups.includes(expense.group)){
+            let groupMatch = groupTotalsWithSubgroups.find(el=>el.id == expense.group);
+            if(groupMatch){
+              this.stats.totalDaysThruHiking+= groupMatch.durationInDays;
+              handledThruHikingGroups.push(expense.group);
+            }
+          }
+
+          if(expense.tags.includes(HardcodedTags.Travel) && !handledTravelGroups.includes(expense.group)){
+            let groupMatch = groupTotals.find(el=>el.id == expense.group);
+            if(groupMatch){
+              this.stats.totalDaysTravel+= groupMatch.durationInDays;
+              handledTravelGroups.push(expense.group);
+            }
           }
 
           // all totals
@@ -239,6 +275,11 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
           if (expense.tags.indexOf(1640542478507) >= 0 || expense.tags.indexOf(1639339361128) >= 0) {
             // special-expense tag
             this.stats.totalSpecial += expense.amount;
+          }
+
+          if(expense.tags.includes(HardcodedTags.ThruHike)){
+            // add to ThruHike total
+            this.stats.totalThruHiking+= expense.amount;
           }
 
           if (new Date(expense.date) > new Date('2021-01-01')) {

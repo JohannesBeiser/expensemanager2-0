@@ -10,6 +10,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { ExpenseListDialogComponent } from '../expense-list-dialog/expense-list-dialog.component';
 import { Restriction } from '../all-time-analysis/all-time-analysis.component';
 import { AnalysisService } from 'src/app/services/analysis/analysis.service';
+import { GroupsService } from 'src/app/services/groups/groups.service';
+import { HardcodedTags } from 'src/app/services/tag/tag.service';
 
 type Stats = {
   averagePerMonth: number,
@@ -18,6 +20,7 @@ type Stats = {
   totalTravel: number;
   totalInvest: number;
   totalRecurring: number;
+  totalDaysTravel: number;
   expectedTotalEndOfYear: number;
   amountOfDays: number;
   monthsData: {
@@ -65,6 +68,7 @@ export class YearAnalysisComponent implements OnInit {
   constructor(
     public categoryService: CategoryService,
     private expenseService: ExpenseService,
+    private groupService: GroupsService,
     public dialog: MatDialog,
     private analysisService: AnalysisService
   ) { }
@@ -95,6 +99,7 @@ export class YearAnalysisComponent implements OnInit {
     averagePerDay: 0,
     total: 0,
     totalTravel: 0,
+    totalDaysTravel:0,
     totalInvest: 0,
     totalRecurring: 0,
     expectedTotalEndOfYear: 0,
@@ -128,8 +133,11 @@ export class YearAnalysisComponent implements OnInit {
     this.expenses$ = this.expenseService.getExpenses("expenses").pipe(
       filter(expenses => expenses.length > 0),
       take(1)
-    )
-    combineLatest([this.expenses$, this.selectedYear$, this.categories$, this.selectedRestriction$]).subscribe(([expenses, selectedYear,categories,restriciton]) => {
+    );
+
+    let groups$ = this.groupService.getGroups();
+
+    combineLatest([this.expenses$, this.selectedYear$, this.categories$, this.selectedRestriction$,groups$]).subscribe(([expenses, selectedYear,categories,restriciton,groups]) => {
       this.availableYears = expenses.reduce((acc, cur) => {
         let currentYear = new Date(cur.date).getFullYear()
         if (!acc.includes(currentYear)) {
@@ -143,6 +151,7 @@ export class YearAnalysisComponent implements OnInit {
         averagePerDay: 0,
         total: 0,
         totalTravel: 0,
+        totalDaysTravel:0,
         totalInvest: 0,
         totalRecurring: 0,
         expectedTotalEndOfYear: 0,
@@ -174,6 +183,12 @@ export class YearAnalysisComponent implements OnInit {
       let firstDate: Date;
       let lastDate: Date;
 
+      var clonedGroups = JSON.parse(JSON.stringify(groups));
+      let groupTotals= this.groupService.calculateGroupsTotals(expenses, clonedGroups);
+
+      let handledTravelGroups: number[] = []; // when looking through expenses if one is found that has the trhun hiking tag, we add its ENDIRE groups durationOfDays to the thruHiking total duration. We need to memorized groups that we did this for to do thisn only once per group
+
+
       expenses.forEach(expense => {
         if (new Date(expense.date) < new Date()) {
           if (!firstDate) {
@@ -192,6 +207,13 @@ export class YearAnalysisComponent implements OnInit {
             lastDate = new Date(expense.date);
           }
 
+          if(expense.tags.includes(HardcodedTags.Travel) && !handledTravelGroups.includes(expense.group)){
+            let groupMatch = groupTotals.find(el=>el.id == expense.group);
+            if(groupMatch){
+              this.stats.totalDaysTravel+= groupMatch.durationInDays;
+              handledTravelGroups.push(expense.group);
+            }
+          }
 
           // all totals
           this.stats.total += expense.amount;

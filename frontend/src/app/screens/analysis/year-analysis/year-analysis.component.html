@@ -160,6 +160,10 @@
                         <div class="value">{{stats.totalTravel | number: '1.0-0':'de-DE'}} €</div>
                     </div>
                     <div class="totals-list-item">
+                        <div class="title">Travel cost / month</div>
+                        <div class="value">{{stats.totalTravel/stats.totalDaysTravel*30 | number: '1.0-0':'de-DE'}} €</div>
+                    </div>
+                    <div class="totals-list-item">
                         <div class="title">Invest</div>
                         <div class="value">{{getAverageValues(1638217648875).total | number: '1.0-0':'de-DE'}} €</div>
                     </div>

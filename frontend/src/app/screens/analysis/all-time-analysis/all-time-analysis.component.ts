@@ -189,7 +189,7 @@ export class AllTimeAnalysisComponent implements OnInit, OnDestroy {
 
           if (!lastDate) {
             lastDate = new Date(expense.date);
-          }
+          } 
 
           if (new Date(expense.date) < firstDate) {
             firstDate = new Date(expense.date);

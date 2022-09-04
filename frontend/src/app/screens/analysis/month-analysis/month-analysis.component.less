@@ -6,8 +6,36 @@
         display: flex;
         padding-bottom: 12px;
 
+        .month{
+          flex-wrap: wrap;
+
+          .extended-month-filter{
+            display: flex;
+
+            .last30{
+              margin-right: 8px;
+              opacity: 0.5;
+              padding: 4px 8px;
+
+              &.active{
+                opacity: 1;
+                border: 1px solid #747474;
+                background: white;
+              }
+
+            }
+
+            #month-input{
+              &.disabled{
+                opacity: 0.5;
+              }
+            }
+          }
+        }
+
         .month, .category{
             display: flex;
+            margin-right: 16px;
 
             .title{
                 font-weight: bold; // TODO evtl falsch angezeigt
@@ -18,9 +46,11 @@
             input, select{
                 border-color: #E1E1E1;
             }
+        }
 
-
-            margin-right: 16px;
+        .restriction-selection{
+          margin-top: 8px;
+          padding: 4px 8px;
         }
     }
 }

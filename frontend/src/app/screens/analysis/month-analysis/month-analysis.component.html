@@ -1,9 +1,11 @@
 <div class="month-analysis-component-container">
 
     <div class="filter-container">
-        <div class="month">    
-            <div class="title">Filter</div>               
-            <input type="month" id="start" name="start" min="2020-03" [(ngModel)]="monthSelection" (change)="monthChanged()">
+      <div class="month">
+        <div class="extended-month-filter">
+          <div [class.active]="last30Active" class="last30" (click)="activateLast30()">30d</div>
+          <input [class.disabled]="last30Active" type="month" id="month-input" name="start" min="2020-03" [(ngModel)]="monthSelection" (change)="monthChanged()" (click)="deactivate30Days()">
+        </div>
         <div class="category">
             <div class="title"></div>
             <select [(ngModel)]="categorySelected" (change)="categoryChanged()">
@@ -11,8 +13,16 @@
                 <option *ngFor="let category of categories$ | async" value="{{category.id}}">{{category.name}}</option>
               </select>
         </div>
+        <select [(ngModel)]="restrictionSelected" (change)="restrictionChanged()" class="restriction-selection">
+          <option value="none">No restriction</option>
+          <option value="no-special">Excl. Special</option>
+          <option value="no-invest">Excl. Invest</option>
+          <option value="no-special-no-invest">Excl. Special & Invest</option>
+        </select>
     </div>
-
-
+    <div>
+    </div>
+  </div>
+  <pre>{{stats | json}}</pre>
 
 </div>

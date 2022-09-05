@@ -3,9 +3,64 @@
 
 .add-component-container {
     display       : flex;
-    flex-direction: column;  
+    flex-direction: column;
     width: 100%;
-    
+
+    .custom-number-input{
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      left: 0;
+      z-index: 99999999;
+      background-color: #eee;
+      border-top: 1px solid #ddd;
+      padding-top: 12px;
+      box-shadow: 0px 20px 50px 0px;
+
+      .next-input-button-wrapper{
+        display: flex;
+        justify-content: end;
+        padding-right: 26px;
+
+        .next-input-button{
+          padding: 16px 35px;
+          background-color: rgb(92, 160, 92);
+          color: white;
+          // border-radius: 12px;
+        }
+      }
+
+
+      .layout-wrapper{
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 8px 16px 16px 16px;
+        margin-bottom: 12px;
+
+        *>{
+          width: calc(100% / 3 - 12px);
+          background: white;
+          margin: 4px;
+          padding: 16px;
+          box-sizing: border-box;
+          display: flex;
+          justify-content: center;
+
+          &:active{
+            background-color: #cbcbcb;
+          }
+
+          &.hide{
+            background-color: unset;
+          }
+      }
+
+
+      }
+
+    }
+
     .slider-header {
         .slider-header-icon {
             flex       : 1;
@@ -89,16 +144,41 @@
             display  : flex;
             flex-wrap: wrap;
 
+            .amount-container{
+              width: 100%;
+              display: flex;
+
+              >*{
+                flex: 1;
+              }
+
+              .custom-amount-input{
+                padding: 19px 0 0 0;
+                margin-right: 8px;
+
+                .number{
+                  border-bottom: 1px solid;
+                  padding-bottom: 8px;
+
+                  &.active{
+                    border-bottom-width: 2px;
+                  }
+                }
+              }
+            }
+
+
             mat-form-field {
                 flex: auto;
 
                 &.amount-input {
                     width       : 70px;
                     margin-right: 16px;
+                    display: none;
                 }
             }
 
-           
+
 
 
         }
@@ -138,7 +218,7 @@
 
         .mat-form-field-flex{
             padding-top: 0 !important;
-        }    
+        }
     }
 
     .food-specific-tags{

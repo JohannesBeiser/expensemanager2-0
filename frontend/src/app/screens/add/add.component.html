@@ -21,38 +21,46 @@
 
           <mat-form-field appearance="standard" class="w-100">
             <mat-label>Name</mat-label>
-            <input type="text" matInput formControlName="name" (blur)="nameChanged($event)">
+            <input type="text" #focusInputName matInput formControlName="name" (blur)="nameChanged($event)">
             <mat-error *ngIf="hasError('name', 'required', 'single')">Name is required</mat-error>
             <mat-error *ngIf="hasError('name', 'maxlength', 'single')">Max. 35 characters allowed</mat-error>
           </mat-form-field>
 
+
           <mat-form-field appearance="standard" class="amount-input">
             <mat-label>Amount (€)</mat-label>
-            <input type="number" matInput formControlName="amount" #focusInputAdd autofocus>
+            <input type="number" matInput formControlName="amount">
             <mat-error *ngIf="hasError('amount', 'required', 'single')">Amount is required</mat-error>
           </mat-form-field>
 
-          <mat-form-field *ngIf="isOnline" appearance="standard">
-            <input type="text" placeholder="Currency" aria-label="Number" matInput formControlName="currency"
-              [matAutocomplete]="auto" (click)="clearCurrency()" (blur)="blurHandler()">
-            <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-              <mat-option *ngFor="let option of filteredOptions$ | async" [value]="option">
-                {{option}}
-              </mat-option>
-            </mat-autocomplete>
-          </mat-form-field>
+          <div class="amount-container">
+            <div class="custom-amount-input" (click)="showNumberInput()">
+              <div class="number" [class.active]="numberInputShown">{{numberInputAmount}}</div>
+            </div>
 
-          <mat-form-field *ngIf="!isOnline" appearance="standard">
-            <input type="text" placeholder="Currency" aria-label="Number" matInput formControlName="currency"
-              [matAutocomplete]="auto" (click)="clearCurrency()" (blur)="blurHandler()">
-            <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-              <mat-option *ngFor="let option of filteredOfflineCurrencies$ | async" [value]="option">
-                {{option}}
-              </mat-option>
-            </mat-autocomplete>
-          </mat-form-field>
+            <mat-form-field *ngIf="isOnline" appearance="standard">
+              <input type="text" placeholder="Currency" aria-label="Number" matInput formControlName="currency"
+                [matAutocomplete]="auto" (click)="clearCurrency()" (blur)="blurHandler()">
+              <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+                <mat-option *ngFor="let option of filteredOptions$ | async" [value]="option">
+                  {{option}}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
 
-          <mat-form-field appearance="standard">
+            <mat-form-field *ngIf="!isOnline" appearance="standard">
+              <input type="text" placeholder="Currency" aria-label="Number" matInput formControlName="currency"
+                [matAutocomplete]="auto" (click)="clearCurrency()" (blur)="blurHandler()">
+              <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+                <mat-option *ngFor="let option of filteredOfflineCurrencies$ | async" [value]="option">
+                  {{option}}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+
+          <mat-form-field appearance="standard" class="w-100">
             <mat-label>Category</mat-label>
             <select matNativeControl formControlName="category">
               <option *ngFor="let category of categories$ | async" value="{{category.id}}">{{category.name}}</option>
@@ -76,7 +84,7 @@
           <div class="tag-selection">
             <div class="selected-tags">
               <div class="selected-tag-item" *ngFor="let tagId of selectedTagIds">
-                <div class="label">{{tagService.getTagById(tagId).name}}</div>
+                <div class="label">{{tagService.getTagById(tagId)?.name}}</div>
                 <i class="material-icons-outlined back-icon" (click)="removeTag(tagId)">close</i>
               </div>
             </div>
@@ -153,7 +161,7 @@
           <div class="tag-selection">
             <div class="selected-tags">
               <div class="selected-tag-item" *ngFor="let tagId of selectedTagIds">
-                <div class="label">{{tagService.getTagById(tagId).name}}</div>
+                <div class="label">{{tagService.getTagById(tagId)?.name}}</div>
                 <i class="material-icons-outlined back-icon" (click)="removeTag(tagId)">close</i>
               </div>
             </div>
@@ -181,5 +189,26 @@
     </mat-tab>
 
   </mat-tab-group>
+
+
+  <div class="custom-number-input" *ngIf="numberInputShown">
+    <div class="next-input-button-wrapper">
+      <div class="next-input-button" (click)="numberInputNextClicked()">Next</div>
+    </div>
+    <div class="layout-wrapper">
+      <div (click)="numberInputNumberPressed(7)">7</div>
+      <div (click)="numberInputNumberPressed(8)">8</div>
+      <div (click)="numberInputNumberPressed(9)">9</div>
+      <div (click)="numberInputNumberPressed(4)">4</div>
+      <div (click)="numberInputNumberPressed(5)">5</div>
+      <div (click)="numberInputNumberPressed(6)">6</div>
+      <div (click)="numberInputNumberPressed(1)">1</div>
+      <div (click)="numberInputNumberPressed(2)">2</div>
+      <div (click)="numberInputNumberPressed(3)">3</div>
+      <div class="hide"></div>
+      <div (click)="numberInputNumberPressed(0)">0</div>
+      <div (click)="numberInputDeletePressed()">del</div>
+    </div>
+  </div>
 
 </div>

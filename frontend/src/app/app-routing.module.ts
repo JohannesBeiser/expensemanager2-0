@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { AddComponent } from './screens/add/add.component';
 import { HomeComponent } from './screens/home/home.component';
 import { SettingsComponent } from './screens/settings/settings.component';
 import { BrowserModule } from '@angular/platform-browser';

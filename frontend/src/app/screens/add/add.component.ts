@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, NgZone, AfterViewInit, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, NgZone, AfterViewInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { SliderService } from 'src/app/services/slider/slider.service';
 import { Expense, ExpenseService } from 'src/app/services/expenses/expense.service';
@@ -7,7 +7,7 @@ import { CurrencyService } from 'src/app/services/currency/currency.service';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 import { take, map, startWith, filter } from 'rxjs/operators';
 import { GroupsService, Group } from 'src/app/services/groups/groups.service';
-import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
+import { Observable, combineLatest } from 'rxjs';
 import { CategoryService, Category, HardcodedCategories } from 'src/app/services/category/category.service';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { FilterService } from 'src/app/services/filter/filter.service';
@@ -18,7 +18,7 @@ import { HardcodedTags, Tag, TagService } from 'src/app/services/tag/tag.service
   templateUrl: './add.component.html',
   styleUrls: ['./add.component.less']
 })
-export class AddComponent implements OnInit, AfterViewInit {
+export class AddComponent implements OnInit {
   constructor(
     public sliderService: SliderService,
     public expenseService: ExpenseService,
@@ -31,7 +31,7 @@ export class AddComponent implements OnInit, AfterViewInit {
   ) { }
 
   @ViewChild('tagSelectInputElement') tagSelectInputElement: ElementRef;
-  @ViewChild("focusInputAdd") public focusInput: ElementRef;
+  @ViewChild("focusInputName") public focusInput: ElementRef;
   @ViewChild('autosize') autosize: CdkTextareaAutosize;
   triggerResize() {
     // Wait for changes to be applied, then trigger textarea resize.
@@ -61,6 +61,42 @@ export class AddComponent implements OnInit, AfterViewInit {
     public filteredTags$: Observable<Tag[]>; // always changing --> source of dropdown options
     public selectedTagIds: number[] = JSON.parse(localStorage.getItem("defaultTags")) || [];
 
+
+
+  public numberInputShown: boolean = true;
+  showNumberInput(){
+    this.numberInputShown = true;
+  }
+
+  hideNumberInput(){
+    this.numberInputShown = false;
+  }
+
+  numberInputNextClicked(){
+    this.hideNumberInput();
+    if(this.expenseForm.controls["name"].value == ""){
+      this.focusInput.nativeElement.focus();
+    }
+  }
+
+  public numberInputAmount= "0.00";
+  private numberInputAmountInternal: string = "0";
+
+  numberInputNumberPressed(num: number){
+    this.numberInputAmountInternal+=num;
+    this.numberInputAmount = (parseFloat(this.numberInputAmountInternal) /100).toFixed(2);
+    this.expenseForm.controls["amount"].setValue(parseFloat(this.numberInputAmountInternal) /100);
+  }
+
+  numberInputDeletePressed(){
+    this.numberInputAmountInternal = this.numberInputAmountInternal.substring(0,this.numberInputAmountInternal.length-1);
+    if(this.numberInputAmountInternal==""){
+      this.numberInputAmountInternal = "0"
+    }
+    this.numberInputAmount = (parseFloat(this.numberInputAmountInternal) /100).toFixed(2);
+    this.expenseForm.controls["amount"].setValue(parseFloat(this.numberInputAmountInternal) /100)
+  }
+
   ngOnInit(): void {
     this.initialData = this.sliderService.currentExpenseForEdit;
     this.defaultCurrency = localStorage.getItem("defaultCurrency")
@@ -86,7 +122,7 @@ export class AddComponent implements OnInit, AfterViewInit {
 
     this.expenseForm = new FormGroup({
       name: new FormControl('', [Validators.required, Validators.maxLength(35)]),
-      amount: new FormControl('', Validators.required),
+      amount: new FormControl(0, Validators.required),
       date: new FormControl(this.currentDate(), Validators.required),
       category: new FormControl(this.categoryService.defaultCategory, Validators.required),
       currency: new FormControl(this.defaultCurrency),
@@ -172,7 +208,7 @@ export class AddComponent implements OnInit, AfterViewInit {
       setTimeout(() => {
         this.expenseForm.reset({
           name: '',
-          amount: '',
+          amount: 0,
           date: this.currentDate(),
           category: this.categoryService.defaultCategory,
           group: this.groupsService.defaultGroup,
@@ -196,11 +232,6 @@ export class AddComponent implements OnInit, AfterViewInit {
     );
   }
 
-  ngAfterViewInit() {
-    if (!this.initialData) {
-      this.focusInput.nativeElement.focus();
-    }
-  }
 
   nameChanged(e:any){
     let expenseName = this.expenseForm.controls['name'].value;

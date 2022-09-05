@@ -17,8 +17,6 @@ export class SttRecorderComponent implements OnInit {
   constructor(
     private audioService: AudioService,
     private sliderService: SliderService,
-    private expenseService: ExpenseService,
-    private groupsService: GroupsService
   ) { }
 
   public recordingState$: BehaviorSubject<string> = new BehaviorSubject('inactive');
@@ -26,6 +24,7 @@ export class SttRecorderComponent implements OnInit {
   public results: any[] = [];
 
   ngOnInit(): void {
+    this.navigateToAddSlider();//remove me fixme todo
   }
 
   navigateToAddSlider() {
@@ -86,7 +85,7 @@ export class SttRecorderComponent implements OnInit {
     }
   }
 
-  
+
 // createExpenseFromSttResult(sttResult: ExpenseSTTResult){
 //   let expense: Expense = {...{
 //     date: `${new Date().getFullYear()}-${('0' + (new Date().getMonth() +1)).slice(-2)}-${('0' + (new Date().getDate())).slice(-2)}`,
@@ -165,7 +164,7 @@ processAudioFrame(inputFrame, inputSampleRate: number) {
   }
 }
 stopResampling() {
-  //emit last ping since intervall won't ping last time at say 800ms 
+  //emit last ping since intervall won't ping last time at say 800ms
   this.streamEndNotifier$.next();
   this.audioContext.close();
   this.gumStream.getAudioTracks()[0].stop();

@@ -24,7 +24,7 @@ export class SttRecorderComponent implements OnInit {
   public results: any[] = [];
 
   ngOnInit(): void {
-    this.navigateToAddSlider();//remove me fixme todo
+    // this.navigateToAddSlider();//remove me fixme todo
   }
 
   navigateToAddSlider() {

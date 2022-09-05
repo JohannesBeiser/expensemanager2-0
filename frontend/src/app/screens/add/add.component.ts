@@ -55,15 +55,15 @@ export class AddComponent implements OnInit {
   public currentCategory: number;
   public categoryTagToggleValue: number;
 
-    //Tags
-    public tags$: Observable<Tag[]>;
-    public allTags: Tag[];
-    public filteredTags$: Observable<Tag[]>; // always changing --> source of dropdown options
-    public selectedTagIds: number[] = JSON.parse(localStorage.getItem("defaultTags")) || [];
+  //Tags
+  public tags$: Observable<Tag[]>;
+  public allTags: Tag[];
+  public filteredTags$: Observable<Tag[]>; // always changing --> source of dropdown options
+  public selectedTagIds: number[] = JSON.parse(localStorage.getItem("defaultTags")) || [];
 
 
 
-  public numberInputShown: boolean = true;
+  public numberInputShown: boolean = false;
   showNumberInput(){
     this.numberInputShown = true;
   }
@@ -99,6 +99,10 @@ export class AddComponent implements OnInit {
 
   ngOnInit(): void {
     this.initialData = this.sliderService.currentExpenseForEdit;
+
+    if(!this.initialData){
+      this.numberInputShown = true;
+    }
     this.defaultCurrency = localStorage.getItem("defaultCurrency")
 
     //Code for food-tag toggle for tags groceries & eat-out
@@ -181,6 +185,8 @@ export class AddComponent implements OnInit {
     //TODO : Dirty workaround
     if (this.initialData) {
       this.selectedTagIds = this.initialData.tags || [];
+      this.numberInputAmountInternal=this.initialData.amount.toString().replace('.','');
+      this.numberInputAmount = (parseFloat(this.numberInputAmountInternal) /100).toFixed(2);
       setTimeout(() => {
         if (this.initialData.lastUpdate) {
           this.recurringForm.reset({

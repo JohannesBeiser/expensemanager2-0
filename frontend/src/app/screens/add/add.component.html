@@ -132,7 +132,7 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="standard" class="amount-input">
+          <mat-form-field appearance="standard" class="amount-input" [class.show-nevertheless]="selectedTabIndex==1">
             <mat-label>Amount (€)</mat-label>
             <input type="number" matInput formControlName="amount_recurring">
             <mat-error *ngIf="hasError('amount_recurring', 'required', 'recurring')">Amount is required</mat-error>

@@ -1,12 +1,16 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
-import { combineLatest } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { Expense, ExpenseService } from 'src/app/services/expenses/expense.service';
 import { Group, GroupsService } from 'src/app/services/groups/groups.service';
 import { DatePipe } from '@angular/common';
 import { trigger, state, style, transition, animate } from '@angular/animations';
-import { CategoryService, Category } from 'src/app/services/category/category.service';
-import { Tag, TagService } from 'src/app/services/tag/tag.service';
+import { CategoryService, Category, HardcodedCategories } from 'src/app/services/category/category.service';
+import { HardcodedTags, Tag, TagService } from 'src/app/services/tag/tag.service';
+import { map } from 'rxjs/operators';
+import { some } from 'highcharts';
+import { MatDialog } from '@angular/material/dialog';
+import { ExpenseListDialogComponent } from '../../analysis/expense-list-dialog/expense-list-dialog.component';
 
 @Component({
   selector: 'app-general',
@@ -36,16 +40,67 @@ export class GeneralComponent implements OnInit {
   @ViewChild("qrCode") QrCode: ElementRef;
   public shareShown: boolean = false;
 
+  public numberOfExpenses$ : Observable<number>;
+  public highestKey$ : Observable<number>;
+  public expensesWithNoGroupmatch$ : Observable<Expense[]>;
+  public expensesWithNoTagMatch$ : Observable<Expense[]>;
+  public expensesWithNoCategoryMatch$ : Observable<Expense[]>;
+  public foodExpensesWithMissingTag$ : Observable<Expense[]>;
+  public transportExpensesWithMissingTag$ : Observable<Expense[]>;
+  public accommodationExpensesWithMissingTag$ : Observable<Expense[]>;
+
   constructor(
     private expenseService: ExpenseService,
     private datePipe: DatePipe,
     private groupsService: GroupsService,
     private categoryService: CategoryService,
-    private tagService: TagService
+    private tagService: TagService,
+    public dialog: MatDialog,
+
   ) { }
 
 
   ngOnInit(): void {
+    this.numberOfExpenses$ = this.expenseService.getExpenses().pipe(map(expenses=>expenses.length))
+    this.highestKey$ = this.expenseService.getExpenses().pipe(map(expenses=>expenses[expenses.length-1]?.key))
+
+    this.expensesWithNoGroupmatch$ = this.expenseService.getExpenses().pipe(map(expenses=>{
+      return expenses.filter(expense=>{
+        return this.groupsService.getGroupById(expense.group)== undefined;
+      })
+    }));
+
+    this.expensesWithNoTagMatch$ = this.expenseService.getExpenses().pipe(map(expenses=>{
+      return expenses.filter(expense=>{
+        return !expense.tags.some(tag=>this.tagService.getTagById(tag)== undefined);
+      })
+    }));
+
+    this.expensesWithNoCategoryMatch$ = this.expenseService.getExpenses().pipe(map(expenses=>{
+      return expenses.filter(expense=>{
+        return expense.category == 0 || this.categoryService.getCategoryFromId(expense.category)== undefined;
+      })
+    }));
+
+    this.foodExpensesWithMissingTag$ = this.expenseService.getExpenses().pipe(map(expenses=>{
+      return expenses.filter(expense=>{
+        return expense.category == HardcodedCategories.Food && ! expense.tags.some(tag=>[HardcodedTags.Groceries, HardcodedTags.EatOut].includes(tag))
+      })
+    }));
+
+    this.transportExpensesWithMissingTag$ = this.expenseService.getExpenses().pipe(map(expenses=>{
+      return expenses.filter(expense=>{
+        return expense.category == HardcodedCategories.Transport && ! expense.tags.some(tag=>[HardcodedTags.Bus, HardcodedTags.Train, HardcodedTags.Boat, HardcodedTags.Car, HardcodedTags.Taxi, HardcodedTags.Flight].includes(tag))
+      })
+    }));
+
+    this.accommodationExpensesWithMissingTag$ = this.expenseService.getExpenses().pipe(map(expenses=>{
+      return expenses.filter(expense=>{
+        return expense.category == HardcodedCategories.Accommodation && ! expense.tags.some(tag=>[HardcodedTags.HotelAirBnB,HardcodedTags.Hostel,HardcodedTags.Camping,HardcodedTags.Rent].includes(tag))
+      })
+    }));
+
+
   }
 
   hardReloadApp() {
@@ -58,6 +113,16 @@ export class GeneralComponent implements OnInit {
       })
       this.reloadApp();
     }
+  }
+
+  showExpenseList(expenses:Expense[]){
+    const dialogRef = this.dialog.open(ExpenseListDialogComponent, {
+      data: {
+        expenses: expenses,
+        category: "asd",
+        total: 123
+      }
+    }); // add initial data here
   }
 
   reloadApp() {
@@ -164,7 +229,7 @@ export class GeneralComponent implements OnInit {
     downloadAnchorNode.remove();
   }
 
-  
+
   /**
    * Since the height animation overflows the end of scroll by making the container higher then before, one can't see he animation since its happening off-screen
    * Therefore during the animation each frame we scroll to the bottom of the currently animated box

@@ -43,6 +43,8 @@ export class GroupSettingsComponent implements OnInit {
   public expandedGroup: Group;
 
   ngOnInit(): void {
+
+
     this.groups$ = this.groupsService.getGroups().pipe(
       map(groups => {
         return groups.filter(group => group.id !== 0).reverse();

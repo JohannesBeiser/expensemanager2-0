@@ -22,10 +22,10 @@
         <i class="material-icons-outlined mr-8">delete</i>
         <span>Delete all data</span>
       </div>
-      
+
     </div>
   </section>
-  
+
   <section class="general-settings-section">
     <div class="section-container">
       <div class="groups-header">
@@ -54,11 +54,48 @@
       <div class="groups-header">
         <span>Application & Data</span>
       </div>
-      <div>TODO: add monitporing infos
+
+
+      <table class="monitoring-table">
+        <tr>
+          <td>Number of expenses</td>
+          <td>{{(numberOfExpenses$ | async)}}</td>
+        </tr>
+        <tr *ngIf="(expensesWithNoGroupmatch$ | async) as expenses" (click)="showExpenseList(expenses)">
+          <td>Faulty expenses (no group match found)</td>
+          <td>{{expenses?.length}}</td>
+        </tr>
+        <tr *ngIf="(expensesWithNoTagMatch$ | async) as expenses" (click)="showExpenseList(expenses)">
+          <td>Faulty expenses (no tag match found)</td>
+          <td>{{expenses?.length}}</td>
+        </tr>
+        <tr *ngIf="(expensesWithNoCategoryMatch$ | async) as expenses" (click)="showExpenseList(expenses)">
+          <td>Faulty expenses (no category)</td>
+          <td>{{expenses?.length}}</td>
+        </tr>
+        <tr *ngIf="(foodExpensesWithMissingTag$ | async) as expenses" (click)="showExpenseList(expenses)">
+          <td>Food expenses - missing tag</td>
+          <td>{{expenses?.length}}</td>
+        </tr>
+        <tr *ngIf="(transportExpensesWithMissingTag$ | async) as expenses" (click)="showExpenseList(expenses)">
+          <td>Transport expenses - missing tag</td>
+          <td>{{expenses.length}}</td>
+        </tr>
+        <tr *ngIf="(accommodationExpensesWithMissingTag$ | async) as expenses" (click)="showExpenseList(expenses)">
+          <td>Accommodation expenses - missing tag</td>
+          <td  >{{expenses?.length}}</td>
+        </tr>
+        <tr>
+          <td>Keygen-value</td>
+          <td>{{highestKey$ | async}}</td>
+        </tr>
+      </table>
+
+      <!-- <div>TODO: add monitporing infos
         - total ampount of expenses, groups etc
         - memory/un-garbage-collected stuff? anyhow? somehow? number of event listeners attached to stuff?
         - unassigned expenses (either groups and categories with modal that shows expense list)
-        - stuff that programatically shouldnt happen but happens (check if for some reason 'id: 0, name:'unassigned' is contained in actual indexedDB) 
-      </div>
+        - stuff that programatically shouldnt happen but happens (check if for some reason 'id: 0, name:'unassigned' is contained in actual indexedDB)
+      </div> -->
     </div>
   </section>

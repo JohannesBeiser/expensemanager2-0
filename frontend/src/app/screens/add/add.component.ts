@@ -5,13 +5,15 @@ import { Expense, ExpenseService } from 'src/app/services/expenses/expense.servi
 import { CurrencyService } from 'src/app/services/currency/currency.service';
 
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
-import { take, map, startWith, filter } from 'rxjs/operators';
+import { take, map, startWith, filter,distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { GroupsService, Group } from 'src/app/services/groups/groups.service';
 import { Observable, combineLatest } from 'rxjs';
 import { CategoryService, Category, HardcodedCategories } from 'src/app/services/category/category.service';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { FilterService } from 'src/app/services/filter/filter.service';
 import { HardcodedTags, Tag, TagService } from 'src/app/services/tag/tag.service';
+import { AudioService } from 'src/app/services/audio/audio.service';
+import { format } from 'date-fns';
 
 @Component({
   selector: 'app-add',
@@ -27,7 +29,8 @@ export class AddComponent implements OnInit {
     public tagService: TagService,
     private filterService: FilterService,
     private _ngZone: NgZone,
-    private currencyService: CurrencyService
+    private currencyService: CurrencyService,
+    private audioService: AudioService
   ) { }
 
   @ViewChild('tagSelectInputElement') tagSelectInputElement: ElementRef;
@@ -237,8 +240,213 @@ export class AddComponent implements OnInit {
       filter(([value,tags])=>typeof value != 'number'), // super hacky but this way i can easily build my own autocomplete chip-input and not have to update angular materials version which would mean tons of re-preogramming of inputs. This happens because the value of the option is the tags id which is a number
       map(([value, tags]) => this._filterTags(value))
     );
+
+    this.expenseForm.controls["name"].valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(1000),
+      map(name=>name.replace("Euro", "€")),
+      filter(name=>name.includes("€")),
+      map(name=>{
+        // Dont ask - i know how its done correctly - crazy embarassing but fast i dont care
+        name.replace("eins", 1);
+        name.replace("zwei", 2);
+        name.replace("drei", 3);
+        name.replace("vier", 4);
+        name.replace("fünf", 5);
+        name.replace("sechs", 6);
+        name.replace("sieben", 7);
+        name.replace("acht", 8);
+        name.replace("neun", 9);
+        name.replace("zehn", 10);
+        name.replace("elf", 11);
+        name.replace("zwölf", 12);
+        name.replace("Eins", 1);
+        name.replace("Zwei", 2);
+        name.replace("Drei", 3);
+        name.replace("Vier", 4);
+        name.replace("Fünf", 5);
+        name.replace("Sechs", 6);
+        name.replace("Sieben", 7);
+        name.replace("Acht", 8);
+        name.replace("Neun", 9);
+        name.replace("Zehn", 10);
+        name.replace("Elf", 11);
+        name.replace("Zwölf", 12);
+        return name
+      }),
+      map(name=>this.audioService.parseSttResult(name)),
+      filter(result=>{
+        return !isNaN(result.amount) && result.name !=""
+      })
+    ).subscribe(res=>{
+      let defaultGroup = parseInt(localStorage.getItem("defaultGroup"));
+      let defaultTags = JSON.parse(localStorage.getItem("defaultTags")) || [];
+
+      let expenseToAdd: Expense= {
+        name: res.name,
+        amount: res.amount,
+        category: 0,
+        group: defaultGroup,
+        date: format(new Date(), "yyyy-MM-dd"),
+        tags: defaultTags
+      }
+      let autofilledExpense = this.getAutofilledExpense(expenseToAdd);
+      if(res.category && res.category!=="0"){
+        autofilledExpense.category = parseInt(res.category);
+      }
+      if(expenseToAdd.category ==0){
+        alert("expense with category = 0 would have been added but was aborted")
+      }else{
+        this.expenseService.addExpense(expenseToAdd, "expenses");
+        this.sliderService.hide();
+      }
+    })
   }
 
+
+
+  /**
+   * similar to nameChanged function but returns a modiefied expense from autofilling tags/category from the name
+   */
+  getAutofilledExpense(expense: Expense): Expense{
+
+    let expenseName = expense.name;
+
+    { // Food
+      let groceryTrigger=["Rewe", "Lidl", "Walmart", "Kaufland", "Grocery", "Groceri", "Lebensmittel", "Wocheneinkauf", "Netto", "Spar", "Aldi", "Edeka", "Bäcker"].map(el=>el.toLowerCase());
+      let eatOutTrigger = ["Döner", "Restaurant", "Pizza", "Sushi", "essen gehen", "Burger", "Pommes", "fries", "mc donalds", "kfc", "subway", "Buffet"].map(el=>el.toLowerCase());
+      //Add Tag Groceries
+      if(groceryTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        // add grocery tag
+        if(!expense.tags.includes(HardcodedTags.Groceries)){
+          expense.tags.push(HardcodedTags.Groceries);
+        }
+        expense.category = HardcodedCategories.Food
+      }
+
+      //Add Tag Eat-Out
+      if(eatOutTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        // add Eat-Out tag
+        if(!expense.tags.includes(HardcodedTags.EatOut)){
+          expense.tags.push(HardcodedTags.EatOut);
+        }
+        this.categoryTagToggleValue = HardcodedTags.EatOut;
+        expense.category=HardcodedCategories.Food
+      }
+
+      //Resupply
+      if(expenseName.includes("resupply")){
+        if(!expense.tags.includes(HardcodedTags.Groceries)){
+          expense.tags.push(HardcodedTags.Groceries);
+        }
+        if(!expense.tags.includes(HardcodedTags.Resupply)){
+          expense.tags.push(HardcodedTags.Resupply);
+        }
+        this.categoryTagToggleValue = HardcodedTags.Groceries;
+        expense.category=HardcodedCategories.Food    }
+      }
+
+    { // Accommodation
+      let hotelTrigger = ["Hotel", "Motel", "Lodge"].map(el=>el.toLowerCase());
+      let hostelTrigger = ["Hostel"].map(el=>el.toLowerCase());
+      let campingTrigger = ["Camping", "zelten", "tenting"].map(el=>el.toLowerCase());
+      let rentTrigger = ["Miete", "rent"].map(el=>el.toLowerCase());
+
+      if(hotelTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.HotelAirBnB)){
+          expense.tags.push(HardcodedTags.HotelAirBnB);
+        }
+        expense.category=HardcodedCategories.Accommodation
+      }
+      if(hostelTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.Hostel)){
+          expense.tags.push(HardcodedTags.Hostel);
+        }
+        expense.category=HardcodedCategories.Accommodation
+      }
+      if(campingTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.Camping)){
+          expense.tags.push(HardcodedTags.Camping);
+        }
+        expense.category=HardcodedCategories.Accommodation
+      }
+      if(rentTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.Rent)){
+          expense.tags.push(HardcodedTags.Rent);
+        }
+        expense.category=HardcodedCategories.Accommodation
+      }
+    }
+
+    { // Transport
+      let taxiTrigger = ["taxi", "uber", "bla bla", "blabla"].map(el=>el.toLowerCase());
+      let boatTrigger = ["schiff", "boat", "fähre", "ferry", "boot"].map(el=>el.toLowerCase());
+      let flightTrigger = ["Flight", "flug", "flugzeug", "airplane"].map(el=>el.toLowerCase());
+      let busTrigger = ["bus"].map(el=>el.toLowerCase());
+      let trainTrigger = ["zug", "train"].map(el=>el.toLowerCase());
+
+      if(taxiTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.Taxi)){
+          expense.tags.push(HardcodedTags.Taxi);
+        }
+        expense.category=HardcodedCategories.Transport
+      }
+      if(boatTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.Boat)){
+          expense.tags.push(HardcodedTags.Boat);
+        }
+        expense.category=HardcodedCategories.Transport
+      }
+      if(flightTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.Flight)){
+          expense.tags.push(HardcodedTags.Flight);
+        }
+        expense.category=HardcodedCategories.Transport
+      }
+      if(busTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.Bus)){
+          expense.tags.push(HardcodedTags.Bus);
+        }
+        expense.category=HardcodedCategories.Transport
+      }
+      if(trainTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.Train)){
+          expense.tags.push(HardcodedTags.Train);
+        }
+        expense.category=HardcodedCategories.Transport
+      }
+    }
+
+    { // Other
+      let haircutTrigger = ["barber", "haircut", "hairdresser", "friseur", "haarschnitt"].map(el=>el.toLowerCase());
+      let shipmentTrigger = ["post", "usps", "dhl", "fedex", "ups", "paket", "versand","package"].map(el=>el.toLowerCase());
+      let giftTrigger = ["gift", "geschenk", "donation", "spende"].map(el=>el.toLowerCase());
+
+
+      if(haircutTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.Hairdresser)){
+          expense.tags.push(HardcodedTags.Hairdresser);
+        }
+        expense.category=HardcodedCategories.General
+      }
+
+      if(shipmentTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.Shipment)){
+          expense.tags.push(HardcodedTags.Shipment);
+        }
+        expense.category=HardcodedCategories.General
+      }
+
+      if(giftTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!expense.tags.includes(HardcodedTags.Gift)){
+          expense.tags.push(HardcodedTags.Gift);
+        }
+        expense.category=HardcodedCategories.General
+      }
+
+  }
+  return expense;
+}
 
   nameChanged(e:any){
     let expenseName = this.expenseForm.controls['name'].value;

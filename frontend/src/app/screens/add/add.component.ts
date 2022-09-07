@@ -54,7 +54,7 @@ export class AddComponent implements OnInit {
   tagFormControl: FormControl;
   public currentCategory: number;
   public categoryTagToggleValue: number;
-
+  public isRecurring: boolean = false;
   //Tags
   public tags$: Observable<Tag[]>;
   public allTags: Tag[];
@@ -187,6 +187,7 @@ export class AddComponent implements OnInit {
       this.selectedTagIds = this.initialData.tags || [];
       this.numberInputAmountInternal=this.initialData.amount.toString().replace('.','');
       this.numberInputAmount = (parseFloat(this.numberInputAmountInternal) /100).toFixed(2);
+      this.isRecurring = this.initialData.recurring;
       setTimeout(() => {
         if (this.initialData.lastUpdate) {
           this.recurringForm.reset({
@@ -486,6 +487,7 @@ export class AddComponent implements OnInit {
     if (this.selectedTabIndex === 0 && !this.currentlyAdding) {
       this.currentlyAdding = true;
       let expense = this.expenseForm.value;
+      expense.recurring = !!this.isRecurring;
       expense.group = parseInt(expense.group);
       this.setFormGroupTouched(this.expenseForm);
       if (this.expenseForm.valid) {

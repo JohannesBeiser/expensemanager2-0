@@ -112,8 +112,12 @@
               cdkAutosizeMinRows="1" cdkAutosizeMaxRows="5"></textarea>
             <mat-error *ngIf="hasError('description', 'maxlength', 'single')">Max. 200 characters allowed</mat-error>
           </mat-form-field>
+
           <input type="submit" style="display: none">
         </form>
+        <div class="w-100">
+          <mat-checkbox [(ngModel)]="isRecurring">Recurring</mat-checkbox>
+        </div>
       </div>
     </mat-tab>
 

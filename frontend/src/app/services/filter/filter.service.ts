@@ -92,7 +92,7 @@ export class FilterService {
    * Either increments or decrements the month shown
    * @param method Either "increment" or "decrement"
    */
-  public switchMonth(method: string) {
+  public switchMonth(method: string) { // why the fuck wouldnt you do uniontype here ^^ - this entire project is dead in terms of code -  so sad , thought this was gonna be THE project where I wouldn't make stupid code decisions
     if (this.filterState$.value.date) {
       let current: MonthYear = this.monthSwitched$.value || this.filterState$.value.date;
 

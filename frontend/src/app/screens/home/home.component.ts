@@ -64,6 +64,14 @@ export class HomeComponent implements OnInit, OnDestroy {
       filter(categroies=>categroies.length>0)
     );
 
+    this.currentFilter$.subscribe(()=>{
+      this.activeCategory= null;
+    })
+
+    this.monthSwitched$.subscribe(()=>{
+      this.activeCategory= null;
+    })
+
     let sub1 = combineLatest(this.currentFilter$, this.expenses$, this.monthSwitched$, this.sortMethod$, this.limitedCategory$,allCategories$,this.manualUpdate$)
       .subscribe(([currentFilter, expenses, monthSwitch, sortMethod, limitedCategory, allCategories]) => {
         let filtered = expenses.filter((expense) => {

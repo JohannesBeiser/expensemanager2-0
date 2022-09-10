@@ -7,6 +7,9 @@ import { FilterService } from './services/filter/filter.service';
 import { combineLatest } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { GroupsService } from './services/groups/groups.service';
+import { HttpClient } from '@angular/common/http';
+import { Expense, ExpenseService } from './services/expenses/expense.service';
+import { format } from 'date-fns';
 
 @Component({
   selector: 'app-root',
@@ -31,6 +34,8 @@ export class AppComponent implements OnInit{
     public filterService: FilterService,
     public groupService: GroupsService,
     private datePipe: DatePipe,
+    private http: HttpClient,
+    private expenseService: ExpenseService
   ) {
     router.events.pipe(
       filter(event => event instanceof NavigationStart)
@@ -92,6 +97,43 @@ export class AppComponent implements OnInit{
   }
 
   ngOnInit(){
+
+    setTimeout(() => {
+      this.http.get('http://localhost:3000/expenseQueue').subscribe(res=>{
+
+        let defaultGroup = parseInt(localStorage.getItem("defaultGroup"));
+        let defaultTags = JSON.parse(localStorage.getItem("defaultTags")) || [];
+
+        (res as any).expenses.forEach((expense)=>{
+          let expenseToAdd: Expense= {
+            name: expense.name,
+            amount: expense.amount,
+            category: 0,
+            group: defaultGroup,
+            date: format(new Date(), "yyyy-MM-dd"),
+            tags: defaultTags
+          }
+          let autofilledExpense = this.expenseService.getAutofilledExpense(expenseToAdd);
+
+          if(autofilledExpense.category>0){
+            this.expenseService.addExpense(autofilledExpense, "expenses")
+            console.log("expense from server synced")
+          }else{
+              alert(`expense couldn't be added from server since it couldnt be autofilled. Name: ${autofilledExpense.name}, Amount: ${autofilledExpense.amount}, categroy: ${autofilledExpense.category}`)
+          }
+        });
+        if((res as any).expenses.length >0){
+          alert(`${(res as any).expenses.length} expenses synced from server`)
+          this.http.get('http://localhost:3000/clearExpenseQueue').subscribe(res=>{
+            if(!(res as any).success){
+              alert("reset of server-expense-queue failed")
+            }
+          })
+        }
+      })
+    }, 100);
+
+
     combineLatest(this.currentFilter$, this.filterService.monthSwitched$, this.groups$).subscribe(([filter, monthSwitch,groups]) => {
         let tempString = {
           date: null,
@@ -103,10 +145,10 @@ export class AppComponent implements OnInit{
           if (filter.date) {
             tempString.date = this.datePipe.transform(`${filter.date.year}-${filter.date.month}-01`, 'MMM y');
           }else if(filter.last30Active){
-            tempString.date = "Last 30 days" 
+            tempString.date = "Last 30 days"
           }
         }
-  
+
         if (filter.groups) {
           // TODO not just first but all
           tempString.group = `${this.groupService.getGroupById(filter.groups[0]).name}`;

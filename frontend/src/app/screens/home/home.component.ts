@@ -8,6 +8,7 @@ import * as Highcharts from 'highcharts';
 import { map, switchMap, switchMapTo, shareReplay, filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { GroupsService } from 'src/app/services/groups/groups.service';
+import { HttpClient } from '@angular/common/http';
 
 interface CategoryTotal {
   category: Category;
@@ -32,7 +33,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     public expenseService: ExpenseService,
     public filterService: FilterService,
     public categoryService: CategoryService,
-    public groupService: GroupsService
+    public groupService: GroupsService,
   ) { }
 
   private subs: Subscription[] = [];

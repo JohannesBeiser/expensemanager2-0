@@ -290,7 +290,13 @@ export class AddComponent implements OnInit {
         date: format(new Date(), "yyyy-MM-dd"),
         tags: defaultTags
       }
-      let autofilledExpense = this.getAutofilledExpense(expenseToAdd);
+      let autofilledExpense = this.expenseService.getAutofilledExpense(expenseToAdd);
+      if(autofilledExpense.tags.some(tag=>tag == HardcodedTags.EatOut)){
+        this.categoryTagToggleValue = HardcodedTags.EatOut;
+      }else if(autofilledExpense.tags.some(tag=>tag == HardcodedTags.Groceries)){
+        this.categoryTagToggleValue = HardcodedTags.Groceries;
+      }
+
       if(res.category && res.category!=="0"){
         autofilledExpense.category = parseInt(res.category);
       }
@@ -303,150 +309,6 @@ export class AddComponent implements OnInit {
     })
   }
 
-
-
-  /**
-   * similar to nameChanged function but returns a modiefied expense from autofilling tags/category from the name
-   */
-  getAutofilledExpense(expense: Expense): Expense{
-
-    let expenseName = expense.name;
-
-    { // Food
-      let groceryTrigger=["Rewe", "Lidl", "Walmart", "Kaufland", "Grocery", "Groceri", "Lebensmittel", "Wocheneinkauf", "Netto", "Spar", "Aldi", "Edeka", "Bäcker"].map(el=>el.toLowerCase());
-      let eatOutTrigger = ["Döner", "Restaurant", "Pizza", "Sushi", "essen gehen", "Burger", "Pommes", "fries", "mc donalds", "kfc", "subway", "Buffet"].map(el=>el.toLowerCase());
-      //Add Tag Groceries
-      if(groceryTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        // add grocery tag
-        if(!expense.tags.includes(HardcodedTags.Groceries)){
-          expense.tags.push(HardcodedTags.Groceries);
-        }
-        expense.category = HardcodedCategories.Food
-      }
-
-      //Add Tag Eat-Out
-      if(eatOutTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        // add Eat-Out tag
-        if(!expense.tags.includes(HardcodedTags.EatOut)){
-          expense.tags.push(HardcodedTags.EatOut);
-        }
-        this.categoryTagToggleValue = HardcodedTags.EatOut;
-        expense.category=HardcodedCategories.Food
-      }
-
-      //Resupply
-      if(expenseName.includes("resupply")){
-        if(!expense.tags.includes(HardcodedTags.Groceries)){
-          expense.tags.push(HardcodedTags.Groceries);
-        }
-        if(!expense.tags.includes(HardcodedTags.Resupply)){
-          expense.tags.push(HardcodedTags.Resupply);
-        }
-        this.categoryTagToggleValue = HardcodedTags.Groceries;
-        expense.category=HardcodedCategories.Food    }
-      }
-
-    { // Accommodation
-      let hotelTrigger = ["Hotel", "Motel", "Lodge"].map(el=>el.toLowerCase());
-      let hostelTrigger = ["Hostel"].map(el=>el.toLowerCase());
-      let campingTrigger = ["Camping", "zelten", "tenting"].map(el=>el.toLowerCase());
-      let rentTrigger = ["Miete", "rent"].map(el=>el.toLowerCase());
-
-      if(hotelTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.HotelAirBnB)){
-          expense.tags.push(HardcodedTags.HotelAirBnB);
-        }
-        expense.category=HardcodedCategories.Accommodation
-      }
-      if(hostelTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.Hostel)){
-          expense.tags.push(HardcodedTags.Hostel);
-        }
-        expense.category=HardcodedCategories.Accommodation
-      }
-      if(campingTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.Camping)){
-          expense.tags.push(HardcodedTags.Camping);
-        }
-        expense.category=HardcodedCategories.Accommodation
-      }
-      if(rentTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.Rent)){
-          expense.tags.push(HardcodedTags.Rent);
-        }
-        expense.category=HardcodedCategories.Accommodation
-      }
-    }
-
-    { // Transport
-      let taxiTrigger = ["taxi", "uber", "bla bla", "blabla"].map(el=>el.toLowerCase());
-      let boatTrigger = ["schiff", "boat", "fähre", "ferry", "boot"].map(el=>el.toLowerCase());
-      let flightTrigger = ["Flight", "flug", "flugzeug", "airplane"].map(el=>el.toLowerCase());
-      let busTrigger = ["bus"].map(el=>el.toLowerCase());
-      let trainTrigger = ["zug", "train"].map(el=>el.toLowerCase());
-
-      if(taxiTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.Taxi)){
-          expense.tags.push(HardcodedTags.Taxi);
-        }
-        expense.category=HardcodedCategories.Transport
-      }
-      if(boatTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.Boat)){
-          expense.tags.push(HardcodedTags.Boat);
-        }
-        expense.category=HardcodedCategories.Transport
-      }
-      if(flightTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.Flight)){
-          expense.tags.push(HardcodedTags.Flight);
-        }
-        expense.category=HardcodedCategories.Transport
-      }
-      if(busTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.Bus)){
-          expense.tags.push(HardcodedTags.Bus);
-        }
-        expense.category=HardcodedCategories.Transport
-      }
-      if(trainTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.Train)){
-          expense.tags.push(HardcodedTags.Train);
-        }
-        expense.category=HardcodedCategories.Transport
-      }
-    }
-
-    { // Other
-      let haircutTrigger = ["barber", "haircut", "hairdresser", "friseur", "haarschnitt"].map(el=>el.toLowerCase());
-      let shipmentTrigger = ["post", "usps", "dhl", "fedex", "ups", "paket", "versand","package"].map(el=>el.toLowerCase());
-      let giftTrigger = ["gift", "geschenk", "donation", "spende"].map(el=>el.toLowerCase());
-
-
-      if(haircutTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.Hairdresser)){
-          expense.tags.push(HardcodedTags.Hairdresser);
-        }
-        expense.category=HardcodedCategories.General
-      }
-
-      if(shipmentTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.Shipment)){
-          expense.tags.push(HardcodedTags.Shipment);
-        }
-        expense.category=HardcodedCategories.General
-      }
-
-      if(giftTrigger.some(el=>expenseName.toLowerCase().includes(el))){
-        if(!expense.tags.includes(HardcodedTags.Gift)){
-          expense.tags.push(HardcodedTags.Gift);
-        }
-        expense.category=HardcodedCategories.General
-      }
-
-  }
-  return expense;
-}
 
   nameChanged(e:any){
     let expenseName = this.expenseForm.controls['name'].value;

@@ -129,7 +129,7 @@ export class AppComponent implements OnInit{
         });
         if((res as any).expenses.length >0){
           alert(`${(res as any).expenses.length} expenses synced from server`)
-          this.http.get('http://localhost:3000/clearExpenseQueue').subscribe(res=>{
+          this.http.get('/clearExpenseQueue').subscribe(res=>{
             if(!(res as any).success){
               alert("reset of server-expense-queue failed")
             }

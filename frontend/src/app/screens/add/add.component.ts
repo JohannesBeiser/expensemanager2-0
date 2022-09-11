@@ -188,7 +188,7 @@ export class AddComponent implements OnInit {
     //TODO : Dirty workaround
     if (this.initialData) {
       this.selectedTagIds = this.initialData.tags || [];
-      this.numberInputAmountInternal=this.initialData.amount.toString().replace('.','');
+      this.numberInputAmountInternal=this.initialData.amount.toFixed(2).replace('.','');
       this.numberInputAmount = (parseFloat(this.numberInputAmountInternal) /100).toFixed(2);
       this.isRecurring = this.initialData.recurring;
       setTimeout(() => {
@@ -309,13 +309,12 @@ export class AddComponent implements OnInit {
     })
   }
 
-
   nameChanged(e:any){
     let expenseName = this.expenseForm.controls['name'].value;
 
     { // Food
-      let groceryTrigger=["Rewe", "Lidl", "Walmart", "Kaufland", "Grocery", "Groceri", "Lebensmittel", "Wocheneinkauf", "Netto", "Spar", "Aldi", "Edeka", "Bäcker"].map(el=>el.toLowerCase());
-      let eatOutTrigger = ["Döner", "Restaurant", "Pizza", "Sushi", "essen gehen", "Burger", "Pommes", "fries", "mc donalds", "kfc", "subway", "Buffet"].map(el=>el.toLowerCase());
+      let groceryTrigger=["Rewe", "Lidl", "Walmart", "Kaufland", "Grocery", "Groceri", "Lebensmittel", "Wocheneinkauf", "Netto", "Spar", "Aldi", "Edeka", "Bäcker","bakery", "chips", "water", "wasser", "snacks", "Getränke"].map(el=>el.toLowerCase());
+      let eatOutTrigger = ["Döner", "Restaurant", "Pizza", "Sushi", "essen gehen", "Burger", "Pommes", "fries", "mc donalds", "kfc", "subway", "Buffet", "coffee", "kaffee", "drinks", "cocktail", "bar"].map(el=>el.toLowerCase());
       //Add Tag Groceries
       if(groceryTrigger.some(el=>expenseName.toLowerCase().includes(el))){
         // add grocery tag
@@ -429,6 +428,7 @@ export class AddComponent implements OnInit {
       let haircutTrigger = ["barber", "haircut", "hairdresser", "friseur", "haarschnitt"].map(el=>el.toLowerCase());
       let shipmentTrigger = ["post", "usps", "dhl", "fedex", "ups", "paket", "versand","package"].map(el=>el.toLowerCase());
       let giftTrigger = ["gift", "geschenk", "donation", "spende"].map(el=>el.toLowerCase());
+      let otherTrigger= ["Kino", "cinema", "movie", "film"];
 
 
       if(haircutTrigger.some(el=>expenseName.toLowerCase().includes(el))){
@@ -449,6 +449,10 @@ export class AddComponent implements OnInit {
         if(!this.selectedTagIds.includes(HardcodedTags.Gift)){
           this.selectedTagIds.push(HardcodedTags.Gift);
         }
+        this.expenseForm.controls['category'].setValue(HardcodedCategories.General)
+      }
+
+      if(otherTrigger.some(el=>expenseName.toLowerCase().includes(el.toLowerCase()))){
         this.expenseForm.controls['category'].setValue(HardcodedCategories.General)
       }
     }
@@ -581,6 +585,11 @@ export class AddComponent implements OnInit {
           let key = this.initialData.key;
           if (this.initialData.recurring) {
             expense.recurring = true;
+          }
+          debugger;
+          if(expense.amount == this.initialData.amount){
+            expense.amount_foreign = this.initialData.amount_foreign
+            expense.currency = this.initialData.currency
           }
           this.expenseService.updateExpense(key, expense, "expenses");
         }

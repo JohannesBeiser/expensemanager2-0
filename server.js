@@ -29,7 +29,8 @@ let foodTrigger=["Rewe", "Lidl", "Walmart", "Kaufland", "Grocery", "Groceri", "L
 let accommodationTrigger = ["Hotel", "Motel", "Lodge","Hostel","Camping", "zelten", "tenting", "campen","Miete", "rent"].map(el=>el.toLowerCase());
 let transportTrigger = ["taxi", "uber", "bla bla", "blabla","schiff", "boat", "fähre", "ferry", "boot","Flight", "flug", "flugzeug", "airplane","bus","zug", "train", "bahn"].map(el=>el.toLowerCase());
 let otherTrigger = ["barber", "haircut", "hairdresser", "friseur", "haarschnitt","post", "usps", "dhl", "fedex", "ups", "paket", "versand","package","gift", "geschenk", "donation", "spende"].map(el=>el.toLowerCase());
-let categoryTrigger= [...foodTrigger,...accommodationTrigger,...transportTrigger,...otherTrigger].map(el=>el.toLowerCase());
+let additionalTriggers= [  "coffee", "kaffee","drinks", "cocktail", "bar", "chips", "water", "wasser" ,"snacks", "Getränke", "bakery", "kino" , "cinema","movie", "film"]; // random / added later
+let categoryTrigger= [...foodTrigger,...accommodationTrigger,...transportTrigger,...otherTrigger,...additionalTriggers].map(el=>el.toLowerCase()); // all the triggers that will resolve a category
 
 const CategorySynonyms = {
   "food": ["food", "essen", "verpflegung"],

@@ -99,7 +99,7 @@ export class AppComponent implements OnInit{
   ngOnInit(){
 
     setTimeout(() => {
-      this.http.get('api/expenseQueue').subscribe(res=>{ //for dev this was http://localhost:3000
+      this.http.get('/expenseQueue').subscribe(res=>{ //for dev this was http://localhost:3000
         console.log("received http request from /expenseQueue")
         let defaultGroup = parseInt(localStorage.getItem("defaultGroup"));
         let defaultTags = JSON.parse(localStorage.getItem("defaultTags")) || [];

@@ -111,7 +111,7 @@ export class AppComponent implements OnInit{
             category: 0,
             group: defaultGroup,
             date: format(new Date(), "yyyy-MM-dd"),
-            tags: defaultTags
+            tags: [...defaultTags]
           }
           let autofilledExpense = this.expenseService.getAutofilledExpense(expenseToAdd);
 

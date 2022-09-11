@@ -31,8 +31,8 @@ export const HardcodedTags={
   Gift: 1639339570936,
   Taxi: 1640702695771,
   Special: 1640542478507,
-  SpecialTravel: 1639339361128
-
+  SpecialTravel: 1639339361128,
+  RentalCar: 1640702684723,
 }
 
 

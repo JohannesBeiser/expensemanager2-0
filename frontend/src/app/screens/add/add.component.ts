@@ -351,7 +351,7 @@ export class AddComponent implements OnInit {
     { // Accommodation
       let hotelTrigger = ["Hotel", "Motel", "Lodge"].map(el=>el.toLowerCase());
       let hostelTrigger = ["Hostel"].map(el=>el.toLowerCase());
-      let campingTrigger = ["Camping", "zelten", "tenting"].map(el=>el.toLowerCase());
+      let campingTrigger = ["Camping", "zelten", "tenting", "campen"].map(el=>el.toLowerCase());
       let rentTrigger = ["Miete", "rent"].map(el=>el.toLowerCase());
 
       if(hotelTrigger.some(el=>expenseName.toLowerCase().includes(el))){
@@ -385,7 +385,7 @@ export class AddComponent implements OnInit {
       let boatTrigger = ["schiff", "boat", "fähre", "ferry", "boot"].map(el=>el.toLowerCase());
       let flightTrigger = ["Flight", "flug", "flugzeug", "airplane"].map(el=>el.toLowerCase());
       let busTrigger = ["bus"].map(el=>el.toLowerCase());
-      let trainTrigger = ["zug", "train"].map(el=>el.toLowerCase());
+      let trainTrigger = ["zug", "train", "bahn"].map(el=>el.toLowerCase());
 
       if(taxiTrigger.some(el=>expenseName.toLowerCase().includes(el))){
         if(!this.selectedTagIds.includes(HardcodedTags.Taxi)){
@@ -408,6 +408,12 @@ export class AddComponent implements OnInit {
       if(busTrigger.some(el=>expenseName.toLowerCase().includes(el))){
         if(!this.selectedTagIds.includes(HardcodedTags.Bus)){
           this.selectedTagIds.push(HardcodedTags.Bus);
+        }
+        this.expenseForm.controls['category'].setValue(HardcodedCategories.Transport)
+      }
+      if(trainTrigger.some(el=>expenseName.toLowerCase().includes(el))){
+        if(!this.selectedTagIds.includes(HardcodedTags.Train)){
+          this.selectedTagIds.push(HardcodedTags.Train);
         }
         this.expenseForm.controls['category'].setValue(HardcodedCategories.Transport)
       }
@@ -445,10 +451,6 @@ export class AddComponent implements OnInit {
         }
         this.expenseForm.controls['category'].setValue(HardcodedCategories.General)
       }
-
-
-
-
     }
 
 }

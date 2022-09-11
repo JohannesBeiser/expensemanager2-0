@@ -25,18 +25,87 @@ let expenses= []
 var numbersAsText = ["Eins", "Zwei", "Drei", "Vier", "Fünf", "Sechs", "Sieben", "Acht", "Neun", "Zehn", "Elf", "Zwölf"];
 // var numbersAsText = ["eins", "Zwei", "Drei", "Vier", "Fünf", "Sechs", "Sieben", "Acht", "Neun", "Zehn", "Elf", "Zwölf"];
 
+let foodTrigger=["Rewe", "Lidl", "Walmart", "Kaufland", "Grocery", "Groceri", "Lebensmittel", "Wocheneinkauf", "Netto", "Spar", "Aldi", "Edeka", "Bäcker","Döner", "Restaurant", "Pizza", "Sushi", "essen gehen", "Burger", "Pommes", "fries", "mc donalds", "kfc", "subway", "Buffet"].map(el=>el.toLowerCase());
+let accommodationTrigger = ["Hotel", "Motel", "Lodge","Hostel","Camping", "zelten", "tenting", "campen","Miete", "rent"].map(el=>el.toLowerCase());
+let transportTrigger = ["taxi", "uber", "bla bla", "blabla","schiff", "boat", "fähre", "ferry", "boot","Flight", "flug", "flugzeug", "airplane","bus","zug", "train", "bahn"].map(el=>el.toLowerCase());
+let otherTrigger = ["barber", "haircut", "hairdresser", "friseur", "haarschnitt","post", "usps", "dhl", "fedex", "ups", "paket", "versand","package","gift", "geschenk", "donation", "spende"].map(el=>el.toLowerCase());
+let categoryTrigger= [...foodTrigger,...accommodationTrigger,...transportTrigger,...otherTrigger].map(el=>el.toLowerCase());
+
+const CategorySynonyms = {
+  "food": ["food", "essen", "verpflegung"],
+  "transport": ["transport", "transportation"],
+  "accommodation": ["accommodation", "unterkunft"],
+  "multimedia": ["multimedia"],
+  "invest": ["invest", "investment", "investieren", "investierung"],
+  "clothingGear": ["gear", "ausrüstung", "kleider", "kleidung", "clothing", "clothes"],
+  "healthInsurance": ["health", "insurance", "gesundheit und versicherung", "gesundheit", "versicherung"],
+  "general": ["general", "allgemein", "allgemeines"]
+};
+
+const HardcodedCategories = {
+  Food: 1637006412319,
+  Transport: 1637006412320,
+  Accommodation: 1637006412321,
+  Multimedia: 1637006412322,
+  HealthInsurance: 1637006412324,
+  General: 1637006412325,
+  ClothingGear: 1637006412326,
+  Invest: 1638217648875,
+}
 /**
  * Adds an expense to the expenseQueue
  * Gets called via Siri via url
  */
 app.get('/expense', (req, res) => {
+  console.log(req.query)
+  if(!req.query.category && !categoryTrigger.some(trigger=> req.query.input.toLowerCase().includes(trigger))){
+    console.log("category cant be interpolated from string - asking for categroy through siri")
+    res.send("category missing")
+    return;
+  }
+
+  if(req.query.category){
+    req.query.category = req.query.category.toLowerCase();
+  }
   let amount = numbersAsTextToNumber(req.query.input);
 
   let expenseName = removeWordsFromString(req.query.input, ["euro","Euro", "eur", "cent", ...numbersAsText, ...numbersAsText.map(el=>el.toLocaleLowerCase())]).replace(/[0-9€,.]/g, '').trim();
+
   let expense= {
     amount: amount,
     name: expenseName,
   }
+
+  if(req.query.category){
+    console.log("category received: " + req.query.category)
+    console.log(CategorySynonyms.food)
+    if(CategorySynonyms.food.some(el=>req.query.category.includes(el))){
+      console.log("category food detected");
+      expense.category = HardcodedCategories.Food
+    }
+    if(CategorySynonyms.transport.some(el=>req.query.category.includes(el))){
+      expense.category = HardcodedCategories.Transport
+    }
+    if(CategorySynonyms.accommodation.some(el=>req.query.category.includes(el))){
+      expense.category = HardcodedCategories.Accommodation
+    }
+    if(CategorySynonyms.multimedia.some(el=>req.query.category.includes(el))){
+      expense.category = HardcodedCategories.Multimedia
+    }
+    if(CategorySynonyms.healthInsurance.some(el=>req.query.category.includes(el))){
+      expense.category = HardcodedCategories.HealthInsurance
+    }
+    if(CategorySynonyms.general.some(el=>req.query.category.includes(el))){
+      expense.category = HardcodedCategories.General
+    }
+    if(CategorySynonyms.clothingGear.some(el=>req.query.category.includes(el))){
+      expense.category = HardcodedCategories.ClothingGear
+    }
+    if(CategorySynonyms.invest.some(el=>req.query.category.includes(el))){
+      expense.category = HardcodedCategories.Invest
+    }
+  }
+
   console.log(expense)
 
   if(expense.name && expense.amount){

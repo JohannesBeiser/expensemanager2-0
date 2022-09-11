@@ -99,8 +99,8 @@ export class AppComponent implements OnInit{
   ngOnInit(){
 
     setTimeout(() => {
-      this.http.get('http://localhost:3000/expenseQueue').subscribe(res=>{
-
+      this.http.get('api/expenseQueue').subscribe(res=>{ //for dev this was http://localhost:3000
+        console.log("received http request from /expenseQueue")
         let defaultGroup = parseInt(localStorage.getItem("defaultGroup"));
         let defaultTags = JSON.parse(localStorage.getItem("defaultTags")) || [];
 
@@ -115,11 +115,16 @@ export class AppComponent implements OnInit{
           }
           let autofilledExpense = this.expenseService.getAutofilledExpense(expenseToAdd);
 
+          if(expense.category){
+            //categroy was provided via siri manually after server realized it cant be interpolated thus ending up being ignored when syncing - siri asked and received a category - should override
+            autofilledExpense.category = expense.category;
+          }
+
           if(autofilledExpense.category>0){
             this.expenseService.addExpense(autofilledExpense, "expenses")
             console.log("expense from server synced")
           }else{
-              alert(`expense couldn't be added from server since it couldnt be autofilled. Name: ${autofilledExpense.name}, Amount: ${autofilledExpense.amount}, categroy: ${autofilledExpense.category}`)
+            alert(`expense couldn't be added from server since it couldnt be autofilled. Name: ${autofilledExpense.name}, Amount: ${autofilledExpense.amount}, categroy: ${autofilledExpense.category}`)
           }
         });
         if((res as any).expenses.length >0){

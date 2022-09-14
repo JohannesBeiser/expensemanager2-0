@@ -66,11 +66,19 @@ app.get('/expense', (req, res) => {
   }
 
   if(req.query.category){
-    req.query.category = req.query.category.toLowerCase();
+    console.log("category found in request " + req.query.category)
+    req.query.category = req.query.category.toLowerCase().trim();
   }
-  let amount = numbersAsTextToNumber(req.query.input);
 
-  let expenseName = removeWordsFromString(req.query.input, ["euro","Euro", "eur", "cent", ...numbersAsText, ...numbersAsText.map(el=>el.toLocaleLowerCase())]).replace(/[0-9€,.]/g, '').trim();
+  let amount =0;
+  let expenseName = "";
+  if(req.query.amount){
+    amount = parseFloat(req.query.amount);
+    expenseName = req.query.input
+  }else{
+    amount = numbersAsTextToNumber(req.query.input);
+    expenseName = removeWordsFromString(req.query.input, ["euro","Euro", "eur", "cent", ...numbersAsText, ...numbersAsText.map(el=>el.toLocaleLowerCase())]).replace(/[0-9€,.]/g, '').trim();
+  }
 
   let expense= {
     amount: amount,

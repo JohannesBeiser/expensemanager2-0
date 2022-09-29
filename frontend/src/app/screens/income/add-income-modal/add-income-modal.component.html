@@ -1,0 +1,31 @@
+<div class="add-income-dialog-container">
+  <div class="header">
+    <h3 mat-dialog-title>{{incomeToEdit? 'Edit Income' : 'Add a new Income'}}</h3>
+    <i  class="material-icons" (click)="closeDialog()">close</i>
+  </div>
+
+    <form class="expense-form" [formGroup]="incomeForm" autocomplete="off" (submit)="submit()"
+      #formDirective="ngForm">
+
+      <mat-form-field appearance="standard" class="w-100">
+        <mat-label>Amount</mat-label>
+        <input type="number" matInput formControlName="amount">
+        <mat-error *ngIf="hasError('amount', 'required')">Amount is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="standard" class="w-100">
+        <mat-label>Group</mat-label>
+        <input type="text" matInput formControlName="group">
+        <mat-error *ngIf="hasError('group', 'required')">Group is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="standard">
+        <mat-label>Date</mat-label>
+        <input type="date" matInput formControlName="date">
+      </mat-form-field>
+
+      <input type="submit" style="display: none;">
+    </form>
+
+    <div class="submit-form" (click)="submit()"  mat-dialog-close>{{incomeToEdit? 'Save' : 'Add'}}</div>
+</div>

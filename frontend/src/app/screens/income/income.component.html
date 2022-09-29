@@ -1,1 +1,12 @@
-<div class="income-component-container w-100">income works</div>
+<div class="income-component-container w-100">
+
+  <div class="header">
+    <div class="title" *ngIf="total$ && total$ | async">{{(total$ | async) | prettyCurrency}}</div>
+    <div class="add-button" (click)="openDialog()">+</div>
+  </div>
+
+  <div class="income-list">
+    <app-income-list-item [incomeEntry]="incomeEntry" *ngFor="let incomeEntry of earnigns$ | async"></app-income-list-item>
+  </div>
+
+</div>

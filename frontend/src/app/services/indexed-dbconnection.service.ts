@@ -42,18 +42,23 @@ export class IndexedDBConnectionService {
         let db = (event.target as any).result;
         let tx = db.transaction(['tags'], 'readwrite');
         let store = tx.objectStore('tags');
-        defaultTags.forEach(tag=> store.add(tag))      
+        defaultTags.forEach(tag=> store.add(tag))
         tx.onerror = (event) => {
           alert('error storing default tags ' + event.target.errorCode);
         }
       }
-     
+
 
       console.log("Added IndexedDB store 'tags'")
     }
+
+    if (!stores.contains("earnings")) {
+      db.createObjectStore('earnings', { autoIncrement: true });
+      console.log("Added IndexedDB store 'earnings'")
+    }
   }
 
-  
+
 
   /**
    * DB Versions:
@@ -62,8 +67,9 @@ export class IndexedDBConnectionService {
    * 3: +recurringExpenses
    * 4: + categories
    * 5: + tags
+   * 6: + earnings
    */
   getConnection(): IDBOpenDBRequest{
-    return indexedDB.open('ExpenseManagerDB', 5)
+    return indexedDB.open('ExpenseManagerDB', 6)
   }
 }

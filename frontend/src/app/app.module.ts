@@ -65,7 +65,10 @@ import { AddTagDialogComponent } from './screens/settings/tag-settings/add-tag-d
 import { TagSettingsBottomSheetComponent } from './screens/settings/tag-settings/tag-settings-bottom-sheet/tag-settings-bottom-sheet.component';
 import { TagListComponent } from './components/tag-list/tag-list.component';
 import { AboutComponent } from './screens/settings/about/about.component';
-import { SubgroupCardComponent } from './components/subgroup-card/subgroup-card.component'
+import { SubgroupCardComponent } from './components/subgroup-card/subgroup-card.component';
+import { IncomeListItemComponent } from './screens/income/income-list-item/income-list-item.component';
+import { IncomeItemBottomSheetComponent } from './screens/income/income-list-item/income-item-bottom-sheet/income-item-bottom-sheet.component';
+import { AddIncomeModalComponent } from './screens/income/add-income-modal/add-income-modal.component'
 
 registerLocaleData(localeDe, 'de');
 
@@ -114,7 +117,10 @@ registerLocaleData(localeDe, 'de');
     TagSettingsBottomSheetComponent,
     TagListComponent,
     AboutComponent,
-    SubgroupCardComponent
+    SubgroupCardComponent,
+    IncomeListItemComponent,
+    IncomeItemBottomSheetComponent,
+    AddIncomeModalComponent
   ],
   imports: [
     BrowserModule,

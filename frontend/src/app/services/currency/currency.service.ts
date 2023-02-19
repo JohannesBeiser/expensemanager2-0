@@ -18,7 +18,7 @@ export class CurrencyService {
     let res;
     try {
       // all this is for memorizing every time a new rate has been fenteched and write that in into localstorage: TODO: persist in indexedDB and write all currencies in there
-      res = await this.http.get(`https://free.currconv.com/api/v7/convert?q=${from}_${to}&compact=ultra&apiKey=154c04e70fa53eb6bad7`).toPromise();
+      res = await this.http.get(`https://free.currconv.com/api/v7/convert?q=${from}_${to}&compact=ultra&apiKey=9bb54f64a1060c726018`).toPromise();
       let rates: CurrencyRate[] = ( JSON.parse(localStorage.getItem("currencyRates")) || []) as CurrencyRate[];
       let match = rates.find(el=>el.from_to == Object.keys(res)[0]);
       if(!match){

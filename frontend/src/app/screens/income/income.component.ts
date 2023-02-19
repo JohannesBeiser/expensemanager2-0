@@ -30,7 +30,7 @@ export class IncomeComponent implements OnInit {
     this.total$ = this.earnigns$.pipe(
       map(earnings=>{
         return earnings.reduce((acc,cur)=>{
-          acc+=cur.amount;
+          acc+=cur.amount_net;
           return acc;
         },0)
       })

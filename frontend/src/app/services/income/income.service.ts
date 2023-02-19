@@ -4,7 +4,8 @@ import { ReplaySubject, BehaviorSubject, Observable } from 'rxjs';
 
 export type Income = {
   group: string;
-  amount: number;
+  amount_net: number;
+  amount_gross: number;
   date: number; // iso milliseconds number
   comment?: string;
   id?: number;

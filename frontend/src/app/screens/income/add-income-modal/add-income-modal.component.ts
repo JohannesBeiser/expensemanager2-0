@@ -22,7 +22,8 @@ export class AddIncomeModalComponent implements OnInit {
   ngOnInit(): void {
     let date = this.incomeToEdit?.id ? format(new Date(this.incomeToEdit?.date), 'yyyy-MM-dd') : format(new Date(),'yyyy-MM-dd');
     this.incomeForm = new FormGroup({
-      amount: new FormControl(this.incomeToEdit?.amount || null, [Validators.required]),
+      amount_net: new FormControl(this.incomeToEdit?.amount_net || null, [Validators.required]),
+      amount_gross: new FormControl(this.incomeToEdit?.amount_gross || null, [Validators.required]),
       group: new FormControl(this.incomeToEdit?.group || '', [Validators.required]),
       date: new FormControl(date, [Validators.required]),
     });

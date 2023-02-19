@@ -8,9 +8,14 @@
       #formDirective="ngForm">
 
       <mat-form-field appearance="standard" class="w-100">
-        <mat-label>Amount</mat-label>
-        <input type="number" matInput formControlName="amount">
-        <mat-error *ngIf="hasError('amount', 'required')">Amount is required</mat-error>
+        <mat-label>Amount net</mat-label>
+        <input type="number" matInput formControlName="amount_net">
+        <mat-error *ngIf="hasError('amount_net', 'required')">Amount is required</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="standard" class="w-100">
+        <mat-label>Amount gross</mat-label>
+        <input type="number" matInput formControlName="amount_gross">
+        <mat-error *ngIf="hasError('amount_gross', 'required')">Amount is required</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="standard" class="w-100">

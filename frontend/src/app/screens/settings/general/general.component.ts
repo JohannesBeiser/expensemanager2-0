@@ -11,6 +11,7 @@ import { map } from 'rxjs/operators';
 import { some } from 'highcharts';
 import { MatDialog } from '@angular/material/dialog';
 import { ExpenseListDialogComponent } from '../../analysis/expense-list-dialog/expense-list-dialog.component';
+import { Income, IncomeService } from 'src/app/services/income/income.service';
 
 @Component({
   selector: 'app-general',
@@ -56,7 +57,7 @@ export class GeneralComponent implements OnInit {
     private categoryService: CategoryService,
     private tagService: TagService,
     public dialog: MatDialog,
-
+    private incomeService: IncomeService
   ) { }
 
 
@@ -133,10 +134,10 @@ export class GeneralComponent implements OnInit {
    * Downloads all of the data (expenses, recurringExpenses, groups) as a snapshot in a .json file
    */
   public downloadBackup() {
-    combineLatest(this.expenseService.getExpenses("expenses"), this.expenseService.getExpenses("recurringExpenses"), this.groupsService.getGroups(), this.categoryService.getCategoriesNew(), this.tagService.getTags())
+    combineLatest(this.expenseService.getExpenses("expenses"), this.expenseService.getExpenses("recurringExpenses"), this.groupsService.getGroups(), this.categoryService.getCategoriesNew(), this.tagService.getTags(), this.incomeService.getIncome())
       .pipe(take(1))
-      .subscribe(([expenses, recurringExpenses, groups, categories,tags]) => {
-        let data = { expenses, recurringExpenses, groups, categories, tags};
+      .subscribe(([expenses, recurringExpenses, groups, categories,tags, income]) => {
+        let data = { expenses, recurringExpenses, groups, categories, tags, income};
         let fileName = `Expense_backup_${this.datePipe.transform(new Date(), 'MMM y').split(' ').join('_')}`
         this.downloadObjectAsJson(data, fileName)
       })
@@ -164,7 +165,7 @@ export class GeneralComponent implements OnInit {
    * loads all of the backup into the IndexedDB
    * @param json data containing expenses, recurringExpenses, groups
    */
-  loadDataIntoApp(json: { expenses: Expense[], recurringExpenses: Expense[], groups: Group[], categories: Category[], tags: Tag[]}) {
+  loadDataIntoApp(json: { expenses: Expense[], recurringExpenses: Expense[], groups: Group[], categories: Category[], tags: Tag[], income: Income[]}) {
     // add normal expenses
 
     if (confirm("Please confirm you want to load this backup into your app")) {
@@ -199,6 +200,12 @@ export class GeneralComponent implements OnInit {
       json.tags.forEach(tag => {
         delete tag['key'];
         this.tagService.addTagFromBackup(tag);
+      });
+
+      // add income
+      json.income.forEach(income => {
+        delete income['key'];
+        this.incomeService.addIncome(income);
       });
 
       alert("Data loaded successfully")

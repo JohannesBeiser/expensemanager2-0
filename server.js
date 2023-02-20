@@ -2,10 +2,29 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const app = express();
-
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 // Imports the Google Cloud client library
 const speech = require('@google-cloud/speech');
 const fs = require('fs').promises;
+
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBtmZFoZ2JrByCSBtni6uM-mFBtH7KdcXc",
+  authDomain: "expensemanager-671f8.firebaseapp.com",
+  projectId: "expensemanager-671f8",
+  storageBucket: "expensemanager-671f8.appspot.com",
+  messagingSenderId: "816296169142",
+  appId: "1:816296169142:web:c6cfcf85645097e0cea017",
+  measurementId: "G-J7EX3487SB"
+};
+
+// Initialize Firebase
+const app2 = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app2);
+
 
 // Port Number
 const port = process.env.PORT || 3000;
